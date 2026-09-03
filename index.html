@@ -674,10 +674,95 @@ const lucroPercentual = Number(produto.custo) > 0
         <div class="panel"><p>🖨️ Módulo de impressoras será desenvolvido na próxima etapa.</p></div>
     </section>
 
-    <section id="screen-vendas" class="screen">
-        <div class="topbar"><h2>Vendas</h2></div>
-        <div class="panel"><p>💰 Módulo de vendas será desenvolvido na próxima etapa.</p></div>
-    </section>
+   <section id="screen-vendas" class="screen">
+
+    <div class="topbar">
+        <h2>Vendas</h2>
+    </div>
+
+    <div class="panel">
+
+        <h3>Nova Venda</h3>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Cliente</label>
+                <select id="vendaCliente">
+                    <option value="">Selecione o cliente</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Produto</label>
+                <select id="vendaProduto">
+                    <option value="">Selecione o produto</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Quantidade</label>
+                <input type="number" id="vendaQuantidade" min="1" value="1">
+            </div>
+
+            <div class="form-group">
+                <label>Preço de venda</label>
+                <input type="number" id="vendaPreco" min="0" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label>Custo do produto</label>
+                <input type="number" id="vendaCusto" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Preço mínimo recomendado</label>
+                <input type="number" id="vendaPrecoMinimo" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Forma de pagamento</label>
+                <select id="vendaPagamento">
+                    <option value="PIX">PIX</option>
+                    <option value="Boleto">Boleto</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Entrega</label>
+                <select id="vendaEntrega">
+                    <option value="Retirada">Retirada</option>
+                    <option value="Motoboy">Motoboy - R$ 10,00</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+
+            <h3>Resumo da Venda</h3>
+
+            <p>Subtotal: <strong id="vendaSubtotal">R$ 0,00</strong></p>
+
+            <p>Custo do produto: <strong id="vendaCustoTotal">R$ 0,00</strong></p>
+
+            <p>Motoboy: <strong id="vendaCustoMotoboy">R$ 0,00</strong></p>
+
+            <p>Boleto: <strong id="vendaCustoBoleto">R$ 0,00</strong></p>
+
+            <p style="font-size:18px;">
+                <strong>Lucro real: <span id="vendaLucroReal">R$ 0,00</span></strong>
+            </p>
+
+        </div>
+
+        <button type="button" class="btn-primary" onclick="salvarVenda()">
+            💾 Salvar Venda
+        </button>
+
+    </div>
+
+</section>
 
     <section id="screen-assistencia" class="screen">
         <div class="topbar"><h2>Assistência Técnica</h2></div>
