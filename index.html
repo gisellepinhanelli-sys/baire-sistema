@@ -604,7 +604,13 @@ td{
                             <option value="Inativo">Inativo</option>
                         </select>
                     </div>
+const precoMinimo = Number(produto.precoMinimo) || 0;
 
+const lucro = Number(produto.venda) - Number(produto.custo);
+
+const lucroPercentual = Number(produto.custo) > 0
+    ? (lucro / Number(produto.custo)) * 100
+    : 0;
                     <div class="form-group full">
                         <label>Descrição</label>
                         <textarea id="produtoDescricao"></textarea>
@@ -1130,7 +1136,18 @@ function renderProdutos(){
 
                 <td>${escapeHTML(produto.marca)}</td>
 
-                <td>${formatarMoeda(produto.venda)}</td>
+                <td>
+    <strong>Venda:</strong> ${formatarMoeda(produto.venda)}
+    <br>
+    <small style="color:#777">
+        Mínimo: ${formatarMoeda(precoMinimo)}
+    </small>
+    <br>
+    <small style="color:#16803a">
+        Lucro: ${formatarMoeda(lucro)}
+        (${lucroPercentual.toFixed(1)}%)
+    </small>
+</td>
 
                 <td>
                     <strong>${produto.estoque}</strong>
