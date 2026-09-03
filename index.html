@@ -980,8 +980,9 @@ document.getElementById("produtoForm").addEventListener("submit", function(e){
         unidade: document.getElementById("produtoUnidade").value,
 
         custo: Number(document.getElementById("produtoCusto").value) || 0,
+        margem: Number(document.getElementById("produtoMargem").value) || 30,
 
-        venda: Number(document.getElementById("produtoVenda").value) || 0,
+                venda: Number(document.getElementById("produtoVenda").value) || 0,
 
         estoque: Number(document.getElementById("produtoEstoque").value) || 0,
 
