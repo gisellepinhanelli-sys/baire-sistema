@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Baire | Sistema de Gestão</title>
+  <title>Baire Toners e Impressoras</title>
 
   <style>
     * {
@@ -14,141 +14,170 @@
     }
 
     body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #111827, #1f2937);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      background: #f4f6f8;
+      color: #1f2937;
     }
 
-    .login-container {
-      width: 100%;
-      max-width: 420px;
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 240px;
+      height: 100vh;
+      background: #111827;
+      color: white;
+      padding: 25px 15px;
     }
 
     .logo {
-      text-align: center;
-      margin-bottom: 35px;
-    }
-
-    .logo-icon {
-      width: 70px;
-      height: 70px;
-      margin: 0 auto 15px;
-      background: #111827;
-      color: #ffffff;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
+      font-size: 22px;
       font-weight: bold;
-    }
-
-    .logo h1 {
-      color: #111827;
-      font-size: 30px;
-      letter-spacing: 1px;
-    }
-
-    .logo p {
-      color: #6b7280;
-      margin-top: 6px;
-      font-size: 14px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      color: #374151;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .form-group input {
-      width: 100%;
-      height: 50px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 0 15px;
-      font-size: 15px;
-      outline: none;
-      transition: 0.2s;
-    }
-
-    .form-group input:focus {
-      border-color: #111827;
-      box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
-    }
-
-    .forgot {
-      text-align: right;
-      margin-top: -8px;
-      margin-bottom: 25px;
-    }
-
-    .forgot a {
-      color: #4b5563;
-      font-size: 13px;
-      text-decoration: none;
-    }
-
-    .forgot a:hover {
-      text-decoration: underline;
-    }
-
-    .btn-login {
-      width: 100%;
-      height: 52px;
-      border: none;
-      border-radius: 10px;
-      background: #111827;
-      color: #ffffff;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .btn-login:hover {
-      background: #374151;
-      transform: translateY(-1px);
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      color: #9ca3af;
-      font-size: 12px;
-    }
-
-    .error {
-      display: none;
-      color: #dc2626;
-      background: #fef2f2;
-      border-radius: 8px;
       padding: 10px;
-      font-size: 13px;
-      margin-bottom: 15px;
-      text-align: center;
+      margin-bottom: 30px;
     }
 
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 30px 22px;
+    .logo span {
+      display: block;
+      font-size: 13px;
+      font-weight: normal;
+      color: #9ca3af;
+      margin-top: 5px;
+    }
+
+    .menu button {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #d1d5db;
+      text-align: left;
+      padding: 13px 15px;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .menu button:hover,
+    .menu button.active {
+      background: #2563eb;
+      color: white;
+    }
+
+    .main {
+      margin-left: 240px;
+      padding: 30px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .top h1 {
+      font-size: 28px;
+    }
+
+    .user {
+      background: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+
+    .card small {
+      color: #6b7280;
+    }
+
+    .card h2 {
+      margin-top: 10px;
+      font-size: 27px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+
+    .panel h2 {
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .activity {
+      padding: 15px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .activity:last-child {
+      border-bottom: none;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        width: 190px;
       }
 
-      .logo h1 {
-        font-size: 26px;
+      .main {
+        margin-left: 190px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 20px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -156,74 +185,111 @@
 
 <body>
 
-  <div class="login-container">
-
+  <aside class="sidebar">
     <div class="logo">
-      <div class="logo-icon">B</div>
-      <h1>BAIRE</h1>
-      <p>Toners & Impressoras</p>
+      BAIRE
+      <span>Toners e Impressoras</span>
     </div>
 
-    <div class="error" id="error">
-      Informe seu usuário e senha.
+    <div class="menu">
+      <button class="active">🏠 Dashboard</button>
+      <button>👥 Clientes</button>
+      <button>📦 Produtos</button>
+      <button>🖨️ Impressoras</button>
+      <button>🛒 Vendas</button>
+      <button>🔧 Assistência Técnica</button>
+      <button>📋 Orçamentos</button>
+      <button>📑 Locações</button>
+      <button>💰 Financeiro</button>
+      <button>📊 Relatórios</button>
+      <button>⚙️ Configurações</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="top">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Visão geral da Baire Toners e Impressoras</p>
+      </div>
+
+      <div class="user">
+        👤 Administrador
+      </div>
     </div>
 
-    <form onsubmit="entrar(event)">
+    <section class="cards">
 
-      <div class="form-group">
-        <label for="usuario">Usuário</label>
-        <input
-          type="text"
-          id="usuario"
-          placeholder="Digite seu usuário"
-        >
+      <div class="card">
+        <small>Vendas do mês</small>
+        <h2>R$ 0,00</h2>
       </div>
 
-      <div class="form-group">
-        <label for="senha">Senha</label>
-        <input
-          type="password"
-          id="senha"
-          placeholder="Digite sua senha"
-        >
+      <div class="card">
+        <small>Clientes</small>
+        <h2>0</h2>
       </div>
 
-      <div class="forgot">
-        <a href="#" onclick="alert('A recuperação de senha será configurada posteriormente.')">
-          Esqueci minha senha
-        </a>
+      <div class="card">
+        <small>Produtos em estoque</small>
+        <h2>0</h2>
       </div>
 
-      <button type="submit" class="btn-login">
-        Entrar
-      </button>
+      <div class="card">
+        <small>Ordens de serviço</small>
+        <h2>0</h2>
+      </div>
 
-    </form>
+    </section>
 
-    <div class="footer">
-      Sistema de Gestão Baire © 2026
-    </div>
+    <section class="content">
 
-  </div>
+      <div class="panel">
+        <h2>Atividades recentes</h2>
 
-  <script>
-    function entrar(event) {
-      event.preventDefault();
+        <div class="activity">
+          <strong>Sistema iniciado</strong>
+          <p>Nenhuma movimentação registrada.</p>
+          <span class="status">Sistema pronto</span>
+        </div>
 
-      const usuario = document.getElementById("usuario").value;
-      const senha = document.getElementById("senha").value;
-      const error = document.getElementById("error");
+        <div class="activity">
+          <strong>Estoque</strong>
+          <p>Cadastre seus produtos para começar.</p>
+        </div>
 
-      if (usuario === "" || senha === "") {
-        error.style.display = "block";
-        return;
-      }
+        <div class="activity">
+          <strong>Clientes</strong>
+          <p>Cadastre seus clientes para registrar vendas e serviços.</p>
+        </div>
 
-      error.style.display = "none";
+      </div>
 
-      alert("Login realizado com sucesso! A próxima etapa será o Dashboard da Baire.");
-    }
-  </script>
+      <div class="panel">
+        <h2>Acesso rápido</h2>
+
+        <div class="activity">
+          ➕ Cadastrar cliente
+        </div>
+
+        <div class="activity">
+          📦 Cadastrar produto
+        </div>
+
+        <div class="activity">
+          🛒 Nova venda
+        </div>
+
+        <div class="activity">
+          🔧 Nova ordem de serviço
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
 
 </body>
 </html>
