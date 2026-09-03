@@ -984,6 +984,10 @@ document.getElementById("produtoForm").addEventListener("submit", function(e){
 
         custo: Number(document.getElementById("produtoCusto").value) || 0,
         margem: Number(document.getElementById("produtoMargem").value) || 30,
+        precoMinimo: Number(
+    (Number(document.getElementById("produtoCusto").value) || 0) *
+    (1 + (Number(document.getElementById("produtoMargem").value) || 30) / 100)
+).toFixed(2),
 
                 venda: Number(document.getElementById("produtoVenda").value) || 0,
 
