@@ -1338,7 +1338,45 @@ function excluirProduto(index){
 
 }
 
+function prepararVenda(){
 
+    const clienteSelect = document.getElementById("vendaCliente");
+    const produtoSelect = document.getElementById("vendaProduto");
+
+    if(!clienteSelect || !produtoSelect){
+        return;
+    }
+
+    clienteSelect.innerHTML = `
+        <option value="">Selecione o cliente</option>
+    `;
+
+    clientes.forEach(function(cliente, index){
+
+        clienteSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(cliente.nome)}
+            </option>
+        `;
+
+    });
+
+
+    produtoSelect.innerHTML = `
+        <option value="">Selecione o produto</option>
+    `;
+
+    produtos.forEach(function(produto, index){
+
+        produtoSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(produto.nome)} - ${escapeHTML(produto.codigo)}
+            </option>
+        `;
+
+    });
+
+}
 /* =========================
    DASHBOARD
 ========================= */
