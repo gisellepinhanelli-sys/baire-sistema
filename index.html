@@ -1672,7 +1672,26 @@ document.getElementById("vendaEntrega").addEventListener(
     "change",
     calcularVenda
 );
+function calcularPrecoMinimoProduto(){
 
+    const custo = Number(document.getElementById("produtoCusto").value) || 0;
+    const margem = Number(document.getElementById("produtoMargem").value) || 0;
+
+    const precoMinimo = custo * (1 + margem / 100);
+
+    document.getElementById("produtoPrecoMinimo").value =
+        precoMinimo.toFixed(2);
+}
+
+document.getElementById("produtoCusto").addEventListener(
+    "input",
+    calcularPrecoMinimoProduto
+);
+
+document.getElementById("produtoMargem").addEventListener(
+    "input",
+    calcularPrecoMinimoProduto
+);
 /* =========================
    INICIALIZAÇÃO
 ========================= */
