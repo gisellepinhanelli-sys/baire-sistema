@@ -1346,7 +1346,32 @@ function prepararVenda(){
     if(!clienteSelect || !produtoSelect){
         return;
     }
+document.getElementById("vendaProduto").addEventListener("change", function(){
 
+    const index = Number(this.value);
+
+    if(this.value === ""){
+        document.getElementById("vendaPreco").value = "";
+        document.getElementById("vendaCusto").value = "";
+        document.getElementById("vendaPrecoMinimo").value = "";
+        return;
+    }
+
+    const produto = produtos[index];
+
+    if(!produto){
+        return;
+    }
+
+    document.getElementById("vendaPreco").value = Number(produto.venda) || 0;
+
+    document.getElementById("vendaCusto").value = Number(produto.custo) || 0;
+
+    document.getElementById("vendaPrecoMinimo").value = Number(produto.precoMinimo) || 0;
+
+    calcularVenda();
+
+});
     clienteSelect.innerHTML = `
         <option value="">Selecione o cliente</option>
     `;
