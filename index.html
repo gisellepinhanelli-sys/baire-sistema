@@ -1693,13 +1693,11 @@ function calcularPrecoMinimoProduto(){
     const margemIdeal =
         Number(document.getElementById("produtoMargemIdeal").value) || 0;
 
-
     const precoMinimo =
         custo * (1 + margem / 100);
 
     const precoIdeal =
         custo * (1 + margemIdeal / 100);
-
 
     document.getElementById("produtoPrecoMinimo").value =
         precoMinimo.toFixed(2);
@@ -1707,11 +1705,19 @@ function calcularPrecoMinimoProduto(){
     document.getElementById("produtoPrecoIdeal").value =
         precoIdeal.toFixed(2);
 }
+
+
+document.getElementById("produtoCusto").addEventListener(
     "input",
     calcularPrecoMinimoProduto
 );
 
 document.getElementById("produtoMargem").addEventListener(
+    "input",
+    calcularPrecoMinimoProduto
+);
+
+document.getElementById("produtoMargemIdeal").addEventListener(
     "input",
     calcularPrecoMinimoProduto
 );
