@@ -1408,7 +1408,13 @@ function calcularVenda(){
         formatarMoeda(lucroReal);
 
 }
-    const produto = produtos[index];
+document.getElementById("vendaQuantidade").addEventListener("input", calcularVenda);
+
+document.getElementById("vendaPreco").addEventListener("input", calcularVenda);
+
+document.getElementById("vendaPagamento").addEventListener("change", calcularVenda);
+
+document.getElementById("vendaEntrega").addEventListener("change", calcularVenda);    const produto = produtos[index];
 
     if(!produto){
         return;
