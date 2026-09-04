@@ -1609,7 +1609,17 @@ function salvarVenda(){
     }
 
 
+    const cliente = clientes[Number(clienteIndex)];
+
     const produto = produtos[Number(produtoIndex)];
+
+
+    if(!cliente){
+
+        alert("Cliente não encontrado.");
+
+        return;
+    }
 
 
     if(!produto){
@@ -1654,25 +1664,75 @@ function salvarVenda(){
         - custoBoleto;
 
 
+    /* =========================
+       REGISTRA A VENDA
+    ========================= */
+
+    const venda = {
+
+        data: new Date().toISOString(),
+
+        cliente: cliente.nome,
+
+        produto: produto.nome,
+
+        codigoProduto: produto.codigo,
+
+        quantidade: quantidade,
+
+        precoVenda: preco,
+
+        custoUnitario: custo,
+
+        subtotal: subtotal,
+
+        custoProdutoTotal: custoProdutoTotal,
+
+        pagamento: pagamento,
+
+        entrega: entrega,
+
+        custoMotoboy: custoMotoboy,
+
+        custoBoleto: custoBoleto,
+
+        lucroReal: lucroReal
+
+    };
+
+
+    vendas.push(venda);
+
+    salvarVendas();
+
+
+    /* =========================
+       ATUALIZA ESTOQUE
+    ========================= */
+
     produto.estoque =
         Number(produto.estoque) - quantidade;
 
 
     salvarProdutos();
 
-
     atualizarDashboard();
-
 
     renderProdutos();
 
 
     alert(
         "Venda salva com sucesso!\n\n" +
-        "Lucro real: " +
-        formatarMoeda(lucroReal)
+        "Cliente: " + cliente.nome + "\n" +
+        "Produto: " + produto.nome + "\n" +
+        "Total: " + formatarMoeda(subtotal) + "\n" +
+        "Lucro real: " + formatarMoeda(lucroReal)
     );
 
+
+    /* =========================
+       LIMPA A VENDA
+    ========================= */
 
     document.getElementById("vendaQuantidade").value = 1;
 
@@ -1684,29 +1744,10 @@ function salvarVenda(){
 
     document.getElementById("vendaProduto").value = "";
 
+
     calcularVenda();
 
 }
-
-document.getElementById("vendaQuantidade").addEventListener(
-    "input",
-    calcularVenda
-);
-
-document.getElementById("vendaPreco").addEventListener(
-    "input",
-    calcularVenda
-);
-
-document.getElementById("vendaPagamento").addEventListener(
-    "change",
-    calcularVenda
-);
-
-document.getElementById("vendaEntrega").addEventListener(
-    "change",
-    calcularVenda
-);
 function calcularPrecoMinimoProduto(){
 
     const custo =
