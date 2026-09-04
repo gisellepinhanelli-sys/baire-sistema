@@ -827,20 +827,17 @@ function showScreen(screen){
         renderClientes();
     }
 
-       if(screen === "produtos"){
+    if(screen === "produtos"){
         renderProdutos();
     }
 
-}
-if(screen === "vendas"){
-    prepararVenda();
-}
-    
-}
+    if(screen === "vendas"){
+        prepararVenda();
+    }
+
 /* =========================
    CLIENTES
 ========================= */
-
 function salvarClientes(){
     localStorage.setItem("baire_clientes", JSON.stringify(clientes));
 }
