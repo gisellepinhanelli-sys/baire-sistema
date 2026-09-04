@@ -808,7 +808,11 @@ td{
 
 let clientes = JSON.parse(localStorage.getItem("baire_clientes") || "[]");
 let produtos = JSON.parse(localStorage.getItem("baire_produtos") || "[]");
+let vendas = JSON.parse(localStorage.getItem("baire_vendas") || "[]");
 
+function salvarVendas(){
+    localStorage.setItem("baire_vendas", JSON.stringify(vendas));
+}
 
 /* =========================
    NAVEGAÇÃO
