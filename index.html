@@ -1519,7 +1519,157 @@ function escapeHTML(text){
         .replace(/'/g,"&#039;");
 
 }
+function prepararVenda(){
 
+    const clienteSelect = document.getElementById("vendaCliente");
+    const produtoSelect = document.getElementById("vendaProduto");
+
+    if(!clienteSelect || !produtoSelect){
+        return;
+    }
+
+    clienteSelect.innerHTML = `
+        <option value="">Selecione o cliente</option>
+    `;
+
+    clientes.forEach(function(cliente, index){
+
+        clienteSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(cliente.nome)}
+            </option>
+        `;
+
+    });
+
+
+    produtoSelect.innerHTML = `
+        <option value="">Selecione o produto</option>
+    `;
+
+    produtos.forEach(function(produto, index){
+
+        produtoSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(produto.nome)} - ${escapeHTML(produto.codigo)}
+            </option>
+        `;
+
+    });
+
+}
+
+
+document.getElementById("vendaProduto").addEventListener("change", function(){
+
+    const index = Number(this.value);
+
+    if(this.value === ""){
+
+        document.getElementById("vendaPreco").value = "";
+        document.getElementById("vendaCusto").value = "";
+        document.getElementById("vendaPrecoMinimo").value = "";
+
+        calcularVenda();
+
+        return;
+    }
+
+    const produto = produtos[index];
+
+    if(!produto){
+        return;
+    }
+
+    document.getElementById("vendaPreco").value =
+        Number(produto.venda) || 0;
+
+    document.getElementById("vendaCusto").value =
+        Number(produto.custo) || 0;
+
+    document.getElementById("vendaPrecoMinimo").value =
+        Number(produto.precoMinimo) || 0;
+
+    calcularVenda();
+
+});
+
+
+function calcularVenda(){
+
+    const quantidade =
+        Number(document.getElementById("vendaQuantidade").value) || 0;
+
+    const preco =
+        Number(document.getElementById("vendaPreco").value) || 0;
+
+    const custo =
+        Number(document.getElementById("vendaCusto").value) || 0;
+
+    const pagamento =
+        document.getElementById("vendaPagamento").value;
+
+    const entrega =
+        document.getElementById("vendaEntrega").value;
+
+
+    const subtotal =
+        quantidade * preco;
+
+    const custoProdutoTotal =
+        quantidade * custo;
+
+    const custoMotoboy =
+        entrega === "Motoboy" ? 10 : 0;
+
+    const custoBoleto =
+        pagamento === "Boleto" ? 3 : 0;
+
+
+    const lucroReal =
+        subtotal
+        - custoProdutoTotal
+        - custoMotoboy
+        - custoBoleto;
+
+
+    document.getElementById("vendaSubtotal").textContent =
+        formatarMoeda(subtotal);
+
+    document.getElementById("vendaCustoTotal").textContent =
+        formatarMoeda(custoProdutoTotal);
+
+    document.getElementById("vendaCustoMotoboy").textContent =
+        formatarMoeda(custoMotoboy);
+
+    document.getElementById("vendaCustoBoleto").textContent =
+        formatarMoeda(custoBoleto);
+
+    document.getElementById("vendaLucroReal").textContent =
+        formatarMoeda(lucroReal);
+
+}
+
+
+document.getElementById("vendaQuantidade").addEventListener(
+    "input",
+    calcularVenda
+);
+
+document.getElementById("vendaPreco").addEventListener(
+    "input",
+    calcularVenda
+);
+
+document.getElementById("vendaPagamento").addEventListener(
+    "change",
+    calcularVenda
+);
+
+document.getElementById("vendaEntrega").addEventListener(
+    "change",
+    calcularVenda
+);
 
 /* =========================
    INICIALIZAÇÃO
