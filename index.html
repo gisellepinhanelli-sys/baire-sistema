@@ -1356,7 +1356,58 @@ document.getElementById("vendaProduto").addEventListener("change", function(){
         document.getElementById("vendaPrecoMinimo").value = "";
         return;
     }
+function calcularVenda(){
 
+    const quantidade =
+        Number(document.getElementById("vendaQuantidade").value) || 0;
+
+    const preco =
+        Number(document.getElementById("vendaPreco").value) || 0;
+
+    const custo =
+        Number(document.getElementById("vendaCusto").value) || 0;
+
+    const pagamento =
+        document.getElementById("vendaPagamento").value;
+
+    const entrega =
+        document.getElementById("vendaEntrega").value;
+
+
+    const subtotal = quantidade * preco;
+
+    const custoProdutoTotal = quantidade * custo;
+
+    const custoMotoboy =
+        entrega === "Motoboy" ? 10 : 0;
+
+    const custoBoleto =
+        pagamento === "Boleto" ? 3 : 0;
+
+
+    const lucroReal =
+        subtotal
+        - custoProdutoTotal
+        - custoMotoboy
+        - custoBoleto;
+
+
+    document.getElementById("vendaSubtotal").textContent =
+        formatarMoeda(subtotal);
+
+    document.getElementById("vendaCustoTotal").textContent =
+        formatarMoeda(custoProdutoTotal);
+
+    document.getElementById("vendaCustoMotoboy").textContent =
+        formatarMoeda(custoMotoboy);
+
+    document.getElementById("vendaCustoBoleto").textContent =
+        formatarMoeda(custoBoleto);
+
+    document.getElementById("vendaLucroReal").textContent =
+        formatarMoeda(lucroReal);
+
+}
     const produto = produtos[index];
 
     if(!produto){
