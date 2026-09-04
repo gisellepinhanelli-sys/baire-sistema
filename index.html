@@ -604,13 +604,7 @@ td{
                             <option value="Inativo">Inativo</option>
                         </select>
                     </div>
-const precoMinimo = Number(produto.precoMinimo) || 0;
 
-const lucro = Number(produto.venda) - Number(produto.custo);
-
-const lucroPercentual = Number(produto.custo) > 0
-    ? (lucro / Number(produto.custo)) * 100
-    : 0;
                     <div class="form-group full">
                         <label>Descrição</label>
                         <textarea id="produtoDescricao"></textarea>
