@@ -1549,7 +1549,140 @@ function calcularVenda(){
         formatarMoeda(lucroReal);
 
 }
+function salvarVenda(){
 
+    const clienteIndex =
+        document.getElementById("vendaCliente").value;
+
+    const produtoIndex =
+        document.getElementById("vendaProduto").value;
+
+    const quantidade =
+        Number(document.getElementById("vendaQuantidade").value) || 0;
+
+    const preco =
+        Number(document.getElementById("vendaPreco").value) || 0;
+
+    const custo =
+        Number(document.getElementById("vendaCusto").value) || 0;
+
+    const pagamento =
+        document.getElementById("vendaPagamento").value;
+
+    const entrega =
+        document.getElementById("vendaEntrega").value;
+
+
+    if(clienteIndex === ""){
+
+        alert("Selecione um cliente.");
+
+        return;
+    }
+
+
+    if(produtoIndex === ""){
+
+        alert("Selecione um produto.");
+
+        return;
+    }
+
+
+    if(quantidade <= 0){
+
+        alert("Informe uma quantidade válida.");
+
+        return;
+    }
+
+
+    if(preco <= 0){
+
+        alert("Informe um preço de venda válido.");
+
+        return;
+    }
+
+
+    const produto = produtos[Number(produtoIndex)];
+
+
+    if(!produto){
+
+        alert("Produto não encontrado.");
+
+        return;
+    }
+
+
+    if(Number(produto.estoque) < quantidade){
+
+        alert(
+            "Estoque insuficiente. Estoque disponível: "
+            + Number(produto.estoque)
+        );
+
+        return;
+    }
+
+
+    const subtotal =
+        quantidade * preco;
+
+
+    const custoProdutoTotal =
+        quantidade * custo;
+
+
+    const custoMotoboy =
+        entrega === "Motoboy" ? 10 : 0;
+
+
+    const custoBoleto =
+        pagamento === "Boleto" ? 3 : 0;
+
+
+    const lucroReal =
+        subtotal
+        - custoProdutoTotal
+        - custoMotoboy
+        - custoBoleto;
+
+
+    produto.estoque =
+        Number(produto.estoque) - quantidade;
+
+
+    salvarProdutos();
+
+
+    atualizarDashboard();
+
+
+    renderProdutos();
+
+
+    alert(
+        "Venda salva com sucesso!\n\n" +
+        "Lucro real: " +
+        formatarMoeda(lucroReal)
+    );
+
+
+    document.getElementById("vendaQuantidade").value = 1;
+
+    document.getElementById("vendaPreco").value = "";
+
+    document.getElementById("vendaCusto").value = "";
+
+    document.getElementById("vendaPrecoMinimo").value = "";
+
+    document.getElementById("vendaProduto").value = "";
+
+    calcularVenda();
+
+}
 
 document.getElementById("vendaQuantidade").addEventListener(
     "input",
