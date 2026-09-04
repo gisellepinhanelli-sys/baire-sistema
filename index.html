@@ -1087,6 +1087,12 @@ document.getElementById("produtoForm").addEventListener("submit", function(e){
     (Number(document.getElementById("produtoCusto").value) || 0) *
     (1 + (Number(document.getElementById("produtoMargem").value) || 30) / 100)
 ).toFixed(2),
+        margemIdeal: Number(document.getElementById("produtoMargemIdeal").value) || 60,
+
+precoIdeal: Number(
+    (Number(document.getElementById("produtoCusto").value) || 0) *
+    (1 + (Number(document.getElementById("produtoMargemIdeal").value) || 60) / 100)
+).toFixed(2),
 
                 venda: Number(document.getElementById("produtoVenda").value) || 0,
 
