@@ -1684,16 +1684,29 @@ document.getElementById("vendaEntrega").addEventListener(
 );
 function calcularPrecoMinimoProduto(){
 
-    const custo = Number(document.getElementById("produtoCusto").value) || 0;
-    const margem = Number(document.getElementById("produtoMargem").value) || 0;
+    const custo =
+        Number(document.getElementById("produtoCusto").value) || 0;
 
-    const precoMinimo = custo * (1 + margem / 100);
+    const margem =
+        Number(document.getElementById("produtoMargem").value) || 0;
+
+    const margemIdeal =
+        Number(document.getElementById("produtoMargemIdeal").value) || 0;
+
+
+    const precoMinimo =
+        custo * (1 + margem / 100);
+
+    const precoIdeal =
+        custo * (1 + margemIdeal / 100);
+
 
     document.getElementById("produtoPrecoMinimo").value =
         precoMinimo.toFixed(2);
-}
 
-document.getElementById("produtoCusto").addEventListener(
+    document.getElementById("produtoPrecoIdeal").value =
+        precoIdeal.toFixed(2);
+}
     "input",
     calcularPrecoMinimoProduto
 );
