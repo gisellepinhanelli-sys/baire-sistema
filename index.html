@@ -775,11 +775,51 @@ td{
 
         </div>
 
-        <button type="button" class="btn-primary" onclick="salvarVenda()">
+              <button type="button" class="btn-primary" onclick="salvarVenda()">
             💾 Salvar Venda
         </button>
 
     </div>
+
+    <div class="panel" style="margin-top:20px;">
+
+        <div class="toolbar">
+            <h3>Histórico de Vendas</h3>
+
+            <input
+                class="search"
+                id="vendaBusca"
+                placeholder="🔎 Pesquisar venda..."
+                oninput="renderVendas()"
+            >
+        </div>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Cliente</th>
+                        <th>Produto</th>
+                        <th>Qtd.</th>
+                        <th>Total</th>
+                        <th>Pagamento</th>
+                        <th>Entrega</th>
+                        <th>Lucro</th>
+                    </tr>
+                </thead>
+
+                <tbody id="vendasTabela"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
 
 </section>
 
