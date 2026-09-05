@@ -1516,7 +1516,79 @@ function prepararVenda(){
 
 }
 
+function renderVendas(){
 
+    const busca = document.getElementById("vendaBusca").value.toLowerCase();
+    const tabela = document.getElementById("vendasTabela");
+
+    const filtradas = vendas.filter(function(venda){
+
+        return (
+            venda.cliente.toLowerCase().includes(busca) ||
+            venda.produto.toLowerCase().includes(busca) ||
+            venda.codigoProduto.toLowerCase().includes(busca)
+        );
+
+    });
+
+    if(filtradas.length === 0){
+
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="8" class="empty">
+                    Nenhuma venda registrada.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    tabela.innerHTML = filtradas.map(function(venda){
+
+        const data = new Date(venda.data).toLocaleDateString("pt-BR");
+
+        return `
+            <tr>
+
+                <td>${data}</td>
+
+                <td>
+                    <strong>${escapeHTML(venda.cliente)}</strong>
+                </td>
+
+                <td>
+                    ${escapeHTML(venda.produto)}
+                    <br>
+                    <small style="color:#777">
+                        ${escapeHTML(venda.codigoProduto)}
+                    </small>
+                </td>
+
+                <td>${venda.quantidade}</td>
+
+                <td>
+                    <strong>
+                        ${formatarMoeda(venda.subtotal)}
+                    </strong>
+                </td>
+
+                <td>${escapeHTML(venda.pagamento)}</td>
+
+                <td>${escapeHTML(venda.entrega)}</td>
+
+                <td>
+                    <strong style="color:#16803a;">
+                        ${formatarMoeda(venda.lucroReal)}
+                    </strong>
+                </td>
+
+            </tr>
+        `;
+
+    }).join("");
+
+}
 document.getElementById("vendaProduto").addEventListener("change", function(){
 
     const index = Number(this.value);
