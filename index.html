@@ -1516,19 +1516,6 @@ function prepararVenda(){
 
 }
 
-function renderVendas(){
-
-    const busca = String(
-        document.getElementById("vendaBusca").value || ""
-    ).toLowerCase();
-
-    const tabela = document.getElementById("vendasTabela");
-
-    if(!tabela){
-        return;
-    }
-function excluirVenda(indice){
-
     const venda = vendas[indice];
 
     if(!venda){
