@@ -1680,6 +1680,27 @@ function excluirVenda(indice){
 
     alert("Venda excluída e estoque devolvido com sucesso!");
 }
+document.getElementById("vendaProduto").addEventListener("change", function(){
+
+    const index = Number(this.value);
+
+    if(this.value === ""){
+
+        document.getElementById("vendaPreco").value = "";
+        document.getElementById("vendaCusto").value = "";
+        document.getElementById("vendaPrecoMinimo").value = "";
+        document.getElementById("vendaPrecoIdeal").value = "";
+
+        calcularVenda();
+
+        return;
+    }
+
+    const produto = produtos[index];
+
+    if(!produto){
+        return;
+    }
 
     document.getElementById("vendaPreco").value =
         Number(produto.venda) || 0;
@@ -1688,23 +1709,21 @@ function excluirVenda(indice){
         Number(produto.custo) || 0;
 
     document.getElementById("vendaPrecoMinimo").value =
-      document.getElementById("vendaPrecoMinimo").value =
-    Number(produto.precoMinimo) || 0;
+        Number(produto.precoMinimo) || 0;
 
-const custoProduto = Number(produto.custo) || 0;
-const margemIdealProduto = Number(produto.margemIdeal) || 60;
+    const custoProduto = Number(produto.custo) || 0;
+    const margemIdealProduto = Number(produto.margemIdeal) || 60;
 
-const precoIdealCalculado =
-    custoProduto * (1 + margemIdealProduto / 100);
+    const precoIdealCalculado =
+        custoProduto * (1 + margemIdealProduto / 100);
 
-document.getElementById("vendaPrecoIdeal").value =
-    precoIdealCalculado.toFixed(2);
+    document.getElementById("vendaPrecoIdeal").value =
+        precoIdealCalculado.toFixed(2);
+
     calcularVenda();
 
 });
-
-
-function calcularVenda(){
+   function calcularVenda(){
 
     const quantidade =
         Number(document.getElementById("vendaQuantidade").value) || 0;
