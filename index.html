@@ -1516,56 +1516,18 @@ function prepararVenda(){
 
 }
 
-    const venda = vendas[indice];
+    function renderVendas(){
 
-    if(!venda){
+    const busca = String(
+        document.getElementById("vendaBusca").value || ""
+    ).toLowerCase();
+
+    const tabela = document.getElementById("vendasTabela");
+
+    if(!tabela){
         return;
     }
 
-    const confirmar = confirm(
-        "Tem certeza que deseja excluir esta venda?\n\n" +
-        "Cliente: " + (venda.cliente || "-") + "\n" +
-        "Produto: " + (venda.produto || "-") + "\n" +
-        "Quantidade: " + (venda.quantidade || 0) + "\n\n" +
-        "A quantidade vendida será devolvida ao estoque."
-    );
-
-    if(!confirmar){
-        return;
-    }
-
-    const produto = produtos.find(function(p){
-
-        return String(p.codigo || "") ===
-               String(venda.codigoProduto || "");
-
-    });
-
-    if(produto){
-
-        produto.estoque =
-            (Number(produto.estoque) || 0) +
-            (Number(venda.quantidade) || 0);
-
-    }
-
-    vendas.splice(indice, 1);
-
-    salvarVendas();
-
-    localStorage.setItem(
-        "baire_produtos",
-        JSON.stringify(produtos)
-    );
-
-    renderVendas();
-
-    renderProdutos();
-
-    atualizarDashboard();
-
-    alert("Venda excluída e estoque devolvido com sucesso!");
-}
     const filtradas = vendas.filter(function(venda){
 
         const cliente = String(venda.cliente || "").toLowerCase();
@@ -1667,111 +1629,57 @@ function prepararVenda(){
     }).join("");
 
 }
+
+
+function excluirVenda(indice){
+
+    const venda = vendas[indice];
+
+    if(!venda){
+        return;
     }
 
-    const filtradas = vendas.filter(function(venda){
+    const confirmar = confirm(
+        "Tem certeza que deseja excluir esta venda?\n\n" +
+        "Cliente: " + (venda.cliente || "-") + "\n" +
+        "Produto: " + (venda.produto || "-") + "\n" +
+        "Quantidade: " + (venda.quantidade || 0) + "\n\n" +
+        "A quantidade vendida será devolvida ao estoque."
+    );
 
-        const cliente = String(venda.cliente || "").toLowerCase();
-        const produto = String(venda.produto || "").toLowerCase();
-        const codigo = String(venda.codigoProduto || "").toLowerCase();
+    if(!confirmar){
+        return;
+    }
 
-        return (
-            cliente.includes(busca) ||
-            produto.includes(busca) ||
-            codigo.includes(busca)
-        );
+    const produto = produtos.find(function(p){
+
+        return String(p.codigo || "") ===
+               String(venda.codigoProduto || "");
 
     });
 
-    if(filtradas.length === 0){
+    if(produto){
 
-        tabela.innerHTML = `
-            <tr>
-                <td colspan="8" class="empty">
-                    Nenhuma venda registrada.
-                </td>
-            </tr>
-        `;
+        produto.estoque =
+            (Number(produto.estoque) || 0) +
+            (Number(venda.quantidade) || 0);
 
-        return;
     }
 
-    tabela.innerHTML = filtradas.map(function(venda){
+    vendas.splice(indice, 1);
 
-        const data = venda.data
-            ? new Date(venda.data).toLocaleDateString("pt-BR")
-            : "-";
+    salvarVendas();
 
-        return `
-            <tr>
+    salvarProdutos();
 
-                <td>${data}</td>
+    renderVendas();
 
-                <td>
-                    <strong>
-                        ${escapeHTML(venda.cliente || "-")}
-                    </strong>
-                </td>
+    renderProdutos();
 
-                <td>
-                    ${escapeHTML(venda.produto || "-")}
-                    <br>
-                    <small style="color:#777">
-                        ${escapeHTML(venda.codigoProduto || "")}
-                    </small>
-                </td>
+    atualizarDashboard();
 
-                <td>
-                    ${Number(venda.quantidade) || 0}
-                </td>
-
-                <td>
-                    <strong>
-                        ${formatarMoeda(venda.subtotal)}
-                    </strong>
-                </td>
-
-                <td>
-                    ${escapeHTML(venda.pagamento || "-")}
-                </td>
-
-                <td>
-                    ${escapeHTML(venda.entrega || "-")}
-                </td>
-
-                <td>
-                    <strong style="color:#16803a;">
-                        ${formatarMoeda(venda.lucroReal)}
-                    </strong>
-                </td>
-
-            </tr>
-        `;
-
-    }).join("");
-
+    alert("Venda excluída e estoque devolvido com sucesso!");
 }
-}
-document.getElementById("vendaProduto").addEventListener("change", function(){
-
-    const index = Number(this.value);
-
-    if(this.value === ""){
-
-        document.getElementById("vendaPreco").value = "";
-        document.getElementById("vendaCusto").value = "";
-        document.getElementById("vendaPrecoMinimo").value = "";
-
-        calcularVenda();
-
-        return;
-    }
-
-    const produto = produtos[index];
-
-    if(!produto){
-        return;
-    }
 
     document.getElementById("vendaPreco").value =
         Number(produto.venda) || 0;
