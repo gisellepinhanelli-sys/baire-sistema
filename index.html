@@ -1518,15 +1518,26 @@ function prepararVenda(){
 
 function renderVendas(){
 
-    const busca = document.getElementById("vendaBusca").value.toLowerCase();
+    const busca = String(
+        document.getElementById("vendaBusca").value || ""
+    ).toLowerCase();
+
     const tabela = document.getElementById("vendasTabela");
+
+    if(!tabela){
+        return;
+    }
 
     const filtradas = vendas.filter(function(venda){
 
+        const cliente = String(venda.cliente || "").toLowerCase();
+        const produto = String(venda.produto || "").toLowerCase();
+        const codigo = String(venda.codigoProduto || "").toLowerCase();
+
         return (
-            venda.cliente.toLowerCase().includes(busca) ||
-            venda.produto.toLowerCase().includes(busca) ||
-            venda.codigoProduto.toLowerCase().includes(busca)
+            cliente.includes(busca) ||
+            produto.includes(busca) ||
+            codigo.includes(busca)
         );
 
     });
@@ -1546,7 +1557,9 @@ function renderVendas(){
 
     tabela.innerHTML = filtradas.map(function(venda){
 
-        const data = new Date(venda.data).toLocaleDateString("pt-BR");
+        const data = venda.data
+            ? new Date(venda.data).toLocaleDateString("pt-BR")
+            : "-";
 
         return `
             <tr>
@@ -1554,18 +1567,22 @@ function renderVendas(){
                 <td>${data}</td>
 
                 <td>
-                    <strong>${escapeHTML(venda.cliente)}</strong>
+                    <strong>
+                        ${escapeHTML(venda.cliente || "-")}
+                    </strong>
                 </td>
 
                 <td>
-                    ${escapeHTML(venda.produto)}
+                    ${escapeHTML(venda.produto || "-")}
                     <br>
                     <small style="color:#777">
-                        ${escapeHTML(venda.codigoProduto)}
+                        ${escapeHTML(venda.codigoProduto || "")}
                     </small>
                 </td>
 
-                <td>${venda.quantidade}</td>
+                <td>
+                    ${Number(venda.quantidade) || 0}
+                </td>
 
                 <td>
                     <strong>
@@ -1573,9 +1590,13 @@ function renderVendas(){
                     </strong>
                 </td>
 
-                <td>${escapeHTML(venda.pagamento)}</td>
+                <td>
+                    ${escapeHTML(venda.pagamento || "-")}
+                </td>
 
-                <td>${escapeHTML(venda.entrega)}</td>
+                <td>
+                    ${escapeHTML(venda.entrega || "-")}
+                </td>
 
                 <td>
                     <strong style="color:#16803a;">
@@ -1588,6 +1609,7 @@ function renderVendas(){
 
     }).join("");
 
+}
 }
 document.getElementById("vendaProduto").addEventListener("change", function(){
 
