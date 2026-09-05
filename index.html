@@ -1502,7 +1502,8 @@ document.getElementById("vendaProduto").addEventListener("change", function(){
 
     document.getElementById("vendaPrecoMinimo").value =
         Number(produto.precoMinimo) || 0;
-
+document.getElementById("vendaPrecoIdeal").value =
+    Number(produto.precoIdeal) || 0;
     calcularVenda();
 
 });
