@@ -1546,6 +1546,109 @@ function renderVendas(){
 
         tabela.innerHTML = `
             <tr>
+                <td colspan="9" class="empty">
+                    Nenhuma venda registrada.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    tabela.innerHTML = filtradas.map(function(venda){
+
+        const data = venda.data
+            ? new Date(venda.data).toLocaleDateString("pt-BR")
+            : "-";
+
+        const indice = vendas.indexOf(venda);
+
+        return `
+            <tr>
+
+                <td>${data}</td>
+
+                <td>
+                    <strong>
+                        ${escapeHTML(venda.cliente || "-")}
+                    </strong>
+                </td>
+
+                <td>
+                    ${escapeHTML(venda.produto || "-")}
+                    <br>
+                    <small style="color:#777">
+                        ${escapeHTML(venda.codigoProduto || "")}
+                    </small>
+                </td>
+
+                <td>
+                    ${Number(venda.quantidade) || 0}
+                </td>
+
+                <td>
+                    <strong>
+                        ${formatarMoeda(venda.subtotal)}
+                    </strong>
+                </td>
+
+                <td>
+                    ${escapeHTML(venda.pagamento || "-")}
+                </td>
+
+                <td>
+                    ${escapeHTML(venda.entrega || "-")}
+                </td>
+
+                <td>
+                    <strong style="color:#16803a;">
+                        ${formatarMoeda(venda.lucroReal)}
+                    </strong>
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        onclick="excluirVenda(${indice})"
+                        style="
+                            background:#fee2e2;
+                            color:#b91c1c;
+                            border:1px solid #fecaca;
+                            padding:6px 10px;
+                            border-radius:6px;
+                            cursor:pointer;
+                        "
+                    >
+                        🗑️
+                    </button>
+                </td>
+
+            </tr>
+        `;
+
+    }).join("");
+
+}
+    }
+
+    const filtradas = vendas.filter(function(venda){
+
+        const cliente = String(venda.cliente || "").toLowerCase();
+        const produto = String(venda.produto || "").toLowerCase();
+        const codigo = String(venda.codigoProduto || "").toLowerCase();
+
+        return (
+            cliente.includes(busca) ||
+            produto.includes(busca) ||
+            codigo.includes(busca)
+        );
+
+    });
+
+    if(filtradas.length === 0){
+
+        tabela.innerHTML = `
+            <tr>
                 <td colspan="8" class="empty">
                     Nenhuma venda registrada.
                 </td>
