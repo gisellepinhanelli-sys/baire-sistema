@@ -1504,9 +1504,17 @@ document.getElementById("vendaProduto").addEventListener("change", function(){
         Number(produto.custo) || 0;
 
     document.getElementById("vendaPrecoMinimo").value =
-        Number(produto.precoMinimo) || 0;
+      document.getElementById("vendaPrecoMinimo").value =
+    Number(produto.precoMinimo) || 0;
+
+const custoProduto = Number(produto.custo) || 0;
+const margemIdealProduto = Number(produto.margemIdeal) || 60;
+
+const precoIdealCalculado =
+    custoProduto * (1 + margemIdealProduto / 100);
+
 document.getElementById("vendaPrecoIdeal").value =
-    Number(produto.precoIdeal) || 0;
+    precoIdealCalculado.toFixed(2);
     calcularVenda();
 
 });
