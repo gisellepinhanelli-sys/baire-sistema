@@ -1456,18 +1456,34 @@ const estoqueBaixo =
                 <td>${escapeHTML(produto.marca)}</td>
 
                 <td>
-    <strong>Venda:</strong> ${formatarMoeda(produto.venda)}
+   <td>
+
+    <strong>Venda:</strong>
+    ${formatarMoeda(venda)}
+
     <br>
-    <small style="color:#777">
-        Mínimo: ${formatarMoeda(precoMinimo)}
+
+    <small style="color:#c0392b">
+        Mínimo 40%:
+        ${formatarMoeda(precoMinimo)}
     </small>
+
     <br>
+
+    <small style="color:#b7791f">
+        Ideal 100%:
+        ${formatarMoeda(precoIdeal)}
+    </small>
+
+    <br>
+
     <small style="color:#16803a">
-        Lucro: ${formatarMoeda(lucro)}
+        Lucro:
+        ${formatarMoeda(lucro)}
         (${lucroPercentual.toFixed(1)}%)
     </small>
-</td>
 
+</td>
                 <td>
                     <strong>${produto.estoque}</strong>
                     ${statusEstoque}
