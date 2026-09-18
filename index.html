@@ -1404,12 +1404,18 @@ function renderProdutos(){
         const index = produtos.indexOf(produto);
 
 
+const custo = Number(produto.custo) || 0;
+
 const precoMinimo = Number(produto.precoMinimo) || 0;
 
-const lucro = Number(produto.venda) - Number(produto.custo);
+const precoIdeal = Number(produto.precoIdeal) || 0;
 
-const lucroPercentual = Number(produto.custo) > 0
-    ? (lucro / Number(produto.custo)) * 100
+const venda = Number(produto.venda) || 0;
+
+const lucro = venda - custo;
+
+const lucroPercentual = custo > 0
+    ? (lucro / custo) * 100
     : 0;
 
 const estoqueBaixo =
