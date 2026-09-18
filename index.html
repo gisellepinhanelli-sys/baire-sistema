@@ -1279,25 +1279,31 @@ document.getElementById("produtoForm").addEventListener("submit", function(e){
 
         unidade: document.getElementById("produtoUnidade").value,
 
-        custo: Number(document.getElementById("produtoCusto").value) || 0,
-        margem: Number(document.getElementById("produtoMargem").value) || 30,
-        precoMinimo: Number(
-    (Number(document.getElementById("produtoCusto").value) || 0) *
-    (1 + (Number(document.getElementById("produtoMargem").value) || 30) / 100)
-).toFixed(2),
-        margemIdeal: Number(document.getElementById("produtoMargemIdeal").value) || 60,
+     custo: Number(document.getElementById("produtoCusto").value) || 0,
 
-precoIdeal: Number(
-    (Number(document.getElementById("produtoCusto").value) || 0) *
-    (1 + (Number(document.getElementById("produtoMargemIdeal").value) || 60) / 100)
-).toFixed(2),
+margemMinima:
+    Number(document.getElementById("produtoMargemMinima").value) || 40,
 
-                venda: Number(document.getElementById("produtoVenda").value) || 0,
+margemIdeal:
+    Number(document.getElementById("produtoMargemIdeal").value) || 100,
 
-        estoque: Number(document.getElementById("produtoEstoque").value) || 0,
+precoMinimo:
+    (
+        (Number(document.getElementById("produtoCusto").value) || 0) *
+        (1 +
+            (Number(document.getElementById("produtoMargemMinima").value) || 40)
+            / 100)
+    ).toFixed(2),
 
-        minimo: Number(document.getElementById("produtoMinimo").value) || 0,
+precoIdeal:
+    (
+        (Number(document.getElementById("produtoCusto").value) || 0) *
+        (1 +
+            (Number(document.getElementById("produtoMargemIdeal").value) || 100)
+            / 100)
+    ).toFixed(2),
 
+venda: Number(document.getElementById("produtoVenda").value) || 0,
         localizacao: document.getElementById("produtoLocalizacao").value.trim(),
 
         fornecedor: document.getElementById("produtoFornecedor").value.trim(),
