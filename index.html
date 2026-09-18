@@ -1539,10 +1539,11 @@ function editarProduto(index){
     document.getElementById("produtoUnidade").value = produto.unidade;
 
     document.getElementById("produtoCusto").value = produto.custo;
-document.getElementById("produtoMargem").value = produto.margem || 30;
-document.getElementById("produtoPrecoMinimo").value = Number(produto.precoMinimo) || 0;
-    document.getElementById("produtoMargemIdeal").value = produto.margemIdeal || 60;
-document.getElementById("produtoPrecoIdeal").value = Number(produto.precoIdeal) || 0;
+document.getElementById("produtoMargemMinima").value =
+    produto.margemMinima ?? 40;
+
+document.getElementById("produtoMargemIdeal").value =
+    produto.margemIdeal ?? 100;
     document.getElementById("produtoVenda").value = produto.venda;
 
     document.getElementById("produtoEstoque").value = produto.estoque;
