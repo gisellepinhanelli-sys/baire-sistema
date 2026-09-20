@@ -1421,53 +1421,63 @@ document.getElementById("produtoForm").addEventListener("submit", function(e){
 
     const produto = {
 
-        codigo: document.getElementById("produtoCodigo").value.trim(),
+    codigo: document.getElementById("produtoCodigo").value.trim(),
 
-        nome: document.getElementById("produtoNome").value.trim(),
+    nome: document.getElementById("produtoNome").value.trim(),
 
-        categoria: document.getElementById("produtoCategoria").value.trim(),
+    categoria: document.getElementById("produtoCategoria").value.trim(),
 
-        marca: document.getElementById("produtoMarca").value.trim(),
+    marca: document.getElementById("produtoMarca").value.trim(),
 
-        modelo: document.getElementById("produtoModelo").value.trim(),
+    modelo: document.getElementById("produtoModelo").value.trim(),
 
-        unidade: document.getElementById("produtoUnidade").value,
+    unidade: document.getElementById("produtoUnidade").value,
 
-     custo: Number(document.getElementById("produtoCusto").value) || 0,
+    custo: Number(
+        document.getElementById("produtoCusto").value
+    ) || 0,
 
-margemMinima:
-    Number(document.getElementById("produtoMargemMinima").value) || 40,
+    margemMinima: Number(
+        document.getElementById("produtoMargemMinima").value
+    ) || 40,
 
-margemIdeal:
-    Number(document.getElementById("produtoMargemIdeal").value) || 100,
+    margemIdeal: Number(
+        document.getElementById("produtoMargemIdeal").value
+    ) || 100,
 
-precoMinimo:
-    (
-        (Number(document.getElementById("produtoCusto").value) || 0) *
-        (1 +
-            (Number(document.getElementById("produtoMargemMinima").value) || 40)
-            / 100)
-    ).toFixed(2),
+    precoMinimo: Number(
+        document.getElementById("produtoPrecoMinimo").value
+    ) || 0,
 
-precoIdeal:
-    (
-        (Number(document.getElementById("produtoCusto").value) || 0) *
-        (1 +
-            (Number(document.getElementById("produtoMargemIdeal").value) || 100)
-            / 100)
-    ).toFixed(2),
+    precoIdeal: Number(
+        document.getElementById("produtoPrecoIdeal").value
+    ) || 0,
 
-venda: Number(document.getElementById("produtoVenda").value) || 0,
-        localizacao: document.getElementById("produtoLocalizacao").value.trim(),
+    venda: Number(
+        document.getElementById("produtoVenda").value
+    ) || 0,
 
-        fornecedor: document.getElementById("produtoFornecedor").value.trim(),
+    estoque: Number(
+        document.getElementById("produtoEstoque").value
+    ) || 0,
 
-        status: document.getElementById("produtoStatus").value,
+    minimo: Number(
+        document.getElementById("produtoMinimo").value
+    ) || 0,
 
-        descricao: document.getElementById("produtoDescricao").value.trim()
+    localizacao:
+        document.getElementById("produtoLocalizacao").value.trim(),
 
-    };
+    fornecedor:
+        document.getElementById("produtoFornecedor").value.trim(),
 
+    status:
+        document.getElementById("produtoStatus").value,
+
+    descricao:
+        document.getElementById("produtoDescricao").value.trim()
+
+};
 
     /* Verifica código duplicado */
 
