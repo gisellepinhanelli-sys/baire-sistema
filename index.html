@@ -1256,18 +1256,26 @@ function novoProduto(){
     document.getElementById("produtoMinimo").value = 0;
     document.getElementById("produtoStatus").value = "Ativo";
     document.getElementById("produtoUnidade").value = "UN";
-document.getElementById("produtoMargemMinima").value = 40;
-document.getElementById("produtoMargemIdeal").value = 100;
-    document.getElementById("produtoPrecoMinimo").value = "";
-document.getElementById("produtoPrecoIdeal").value = "";
-    document.getElementById("produtoFormTitle").textContent = "Novo Produto";
 
-    document.getElementById("produtoFormPanel").classList.remove("hidden");
+    document.getElementById("produtoMargemMinima").value = 40;
+    document.getElementById("produtoMargemIdeal").value = 100;
+
+    document.getElementById("produtoPrecoMinimo").value = "";
+    document.getElementById("produtoPrecoIdeal").value = "";
+
+    document.getElementById("produtoVenda").value = "";
+
+    document.getElementById("produtoFormTitle").textContent =
+        "Novo Produto";
+
+    document.getElementById("produtoFormPanel")
+        .classList.remove("hidden");
 
     window.scrollTo({
         top:0,
         behavior:"smooth"
     });
+
 }
 /* =========================
    CÁLCULO DE MARGEM DO PRODUTO
