@@ -1852,58 +1852,469 @@ function excluirProduto(index){
    DASHBOARD
 ========================= */
 
-function atualizarDashboard(){
+/* =========================
+   VENDAS
+========================= */
 
-    document.getElementById("dashboardClientes").textContent =
-        clientes.length;
+function prepararVenda(){
+
+    const clienteSelect =
+        document.getElementById("vendaCliente");
+
+    const produtoSelect =
+        document.getElementById("vendaProduto");
+
+    if(!clienteSelect || !produtoSelect){
+        return;
+    }
 
 
-    const totalEstoque = produtos.reduce(function(total, produto){
+    /* CLIENTES */
 
-        return total + Number(produto.estoque || 0);
+    clienteSelect.innerHTML =
+        `<option value="">Selecione o cliente</option>`;
 
-    },0);
+    clientes.forEach(function(cliente, index){
+
+        clienteSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(cliente.nome)}
+            </option>
+        `;
+
+    });
 
 
-    document.getElementById("dashboardProdutos").textContent =
-        totalEstoque;
+    /* PRODUTOS */
+
+    produtoSelect.innerHTML =
+        `<option value="">Selecione o produto</option>`;
+
+    produtos.forEach(function(produto, index){
+
+        produtoSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(produto.nome)}
+                - ${escapeHTML(produto.codigo)}
+            </option>
+        `;
+
+    });
+
+
+    calcularVenda();
 
 }
 
 
 /* =========================
-   FORMATAÇÃO
+   SELECIONAR PRODUTO
 ========================= */
 
-function formatarMoeda(valor){
+document.getElementById("vendaProduto")
+    .addEventListener("change", function(){
 
-    return Number(valor || 0).toLocaleString("pt-BR",{
+        const index = Number(this.value);
 
-        style:"currency",
+        if(this.value === ""){
 
-        currency:"BRL"
+            document.getElementById("vendaCusto").value = "";
+            document.getElementById("vendaPrecoMinimo").value = "";
+            document.getElementById("vendaPrecoIdeal").value = "";
+            document.getElementById("vendaPreco").value = "";
 
-    });
+            calcularVenda();
+
+            return;
+        }
+
+
+        const produto = produtos[index];
+
+        if(!produto){
+            return;
+        }
+
+
+        const custo =
+            Number(produto.custo) || 0;
+
+
+        const margemMinima =
+            Number(produto.margemMinima) || 40;
+
+
+        const margemIdeal =
+            Number(produto.margemIdeal) || 100;
+
+
+        const precoMinimo =
+            custo * (1 + margemMinima / 100);
+
+
+        const precoIdeal =
+            custo * (1 + margemIdeal / 100);
+
+
+        document.getElementById("vendaCusto").value =
+            custo.toFixed(2);
+
+
+        document.getElementById("vendaPrecoMinimo").value =
+            precoMinimo.toFixed(2);
+
+
+        document.getElementById("vendaPrecoIdeal").value =
+            precoIdeal.toFixed(2);
+
+
+        /*
+           Ao selecionar o produto,
+           começa com o preço ideal.
+        */
+
+        document.getElementById("vendaPreco").value =
+            Number(produto.venda) > 0
+                ? Number(produto.venda).toFixed(2)
+                : precoIdeal.toFixed(2);
+
+
+        calcularVenda();
+
+});
+
+
+/* =========================
+   CÁLCULO DA VENDA
+========================= */
+
+function calcularVenda(){
+
+    const quantidade =
+        Number(
+            document.getElementById("vendaQuantidade").value
+        ) || 0;
+
+
+    const preco =
+        Number(
+            document.getElementById("vendaPreco").value
+        ) || 0;
+
+
+    const custo =
+        Number(
+            document.getElementById("vendaCusto").value
+        ) || 0;
+
+
+    const precoMinimo =
+        Number(
+            document.getElementById("vendaPrecoMinimo").value
+        ) || 0;
+
+
+    const precoIdeal =
+        Number(
+            document.getElementById("vendaPrecoIdeal").value
+        ) || 0;
+
+
+    const pagamento =
+        document.getElementById("vendaPagamento").value;
+
+
+    const entrega =
+        document.getElementById("vendaEntrega").value;
+
+
+    const motoboyInformado =
+        Number(
+            document.getElementById("vendaMotoboy").value
+        ) || 0;
+
+
+    const outrosCustos =
+        Number(
+            document.getElementById("vendaOutrosCustos").value
+        ) || 0;
+
+
+    /* VALORES */
+
+    const subtotal =
+        quantidade * preco;
+
+
+    const custoProdutos =
+        quantidade * custo;
+
+
+    const custoMotoboy =
+        entrega === "Motoboy"
+            ? motoboyInformado
+            : 0;
+
+
+    const custoBoleto =
+        pagamento === "Boleto"
+            ? 3
+            : 0;
+
+
+    const lucroReal =
+        subtotal
+        - custoProdutos
+        - custoMotoboy
+        - custoBoleto
+        - outrosCustos;
+
+
+    const margemReal =
+        subtotal > 0
+            ? (lucroReal / subtotal) * 100
+            : 0;
+
+
+    /* RESUMO */
+
+    document.getElementById("vendaSubtotal")
+        .textContent =
+        formatarMoeda(subtotal);
+
+
+    document.getElementById("vendaCustoTotal")
+        .textContent =
+        formatarMoeda(custoProdutos);
+
+
+    document.getElementById("vendaCustoMotoboy")
+        .textContent =
+        formatarMoeda(custoMotoboy);
+
+
+    document.getElementById("vendaCustoBoleto")
+        .textContent =
+        formatarMoeda(custoBoleto);
+
+
+    document.getElementById("vendaCustoOutros")
+        .textContent =
+        formatarMoeda(outrosCustos);
+
+
+    document.getElementById("vendaLucroReal")
+        .textContent =
+        formatarMoeda(lucroReal);
+
+
+    document.getElementById("vendaMargemReal")
+        .textContent =
+        margemReal.toFixed(1) + "%";
+
+
+    /* STATUS DA MARGEM */
+
+    const status =
+        document.getElementById("vendaStatusMargem");
+
+
+    if(preco <= 0 || custo <= 0){
+
+        status.textContent =
+            "Selecione um produto e informe o preço de venda.";
+
+        status.style.color = "#666";
+
+        return;
+    }
+
+
+    if(preco < precoMinimo){
+
+        status.textContent =
+            "🔴 ATENÇÃO: preço abaixo da margem mínima de 40%.";
+
+        status.style.color = "#dc3545";
+
+    }
+    else if(preco < precoIdeal){
+
+        status.textContent =
+            "🟡 Venda acima do mínimo, mas abaixo do lucro ideal de 100%.";
+
+        status.style.color = "#c27a00";
+
+    }
+    else{
+
+        status.textContent =
+            "🟢 Preço dentro da margem ideal de 100%.";
+
+        status.style.color = "#16803a";
+
+    }
 
 }
 
 
-function escapeHTML(text){
+/* =========================
+   EVENTOS DA VENDA
+========================= */
 
-    return String(text || "")
+document.getElementById("vendaQuantidade")
+    .addEventListener(
+        "input",
+        calcularVenda
+    );
 
-        .replace(/&/g,"&amp;")
 
-        .replace(/</g,"&lt;")
+document.getElementById("vendaPreco")
+    .addEventListener(
+        "input",
+        calcularVenda
+    );
 
-        .replace(/>/g,"&gt;")
 
-        .replace(/"/g,"&quot;")
+document.getElementById("vendaPagamento")
+    .addEventListener(
+        "change",
+        calcularVenda
+    );
 
-        .replace(/'/g,"&#039;");
+
+document.getElementById("vendaEntrega")
+    .addEventListener(
+        "change",
+        calcularVenda
+    );
+
+
+document.getElementById("vendaMotoboy")
+    .addEventListener(
+        "input",
+        calcularVenda
+    );
+
+
+document.getElementById("vendaOutrosCustos")
+    .addEventListener(
+        "input",
+        calcularVenda
+    );
+
+
+/* =========================
+   SALVAR VENDA
+========================= */
+
+function salvarVenda(){
+
+    const clienteIndex =
+        document.getElementById("vendaCliente").value;
+
+
+    const produtoIndex =
+        document.getElementById("vendaProduto").value;
+
+
+    const quantidade =
+        Number(
+            document.getElementById("vendaQuantidade").value
+        ) || 0;
+
+
+    const preco =
+        Number(
+            document.getElementById("vendaPreco").value
+        ) || 0;
+
+
+    if(clienteIndex === ""){
+
+        alert("Selecione o cliente.");
+
+        return;
+    }
+
+
+    if(produtoIndex === ""){
+
+        alert("Selecione o produto.");
+
+        return;
+    }
+
+
+    if(quantidade <= 0){
+
+        alert("Informe uma quantidade válida.");
+
+        return;
+    }
+
+
+    if(preco <= 0){
+
+        alert("Informe o preço de venda.");
+
+        return;
+    }
+
+
+    const produto =
+        produtos[Number(produtoIndex)];
+
+
+    if(!produto){
+
+        alert("Produto não encontrado.");
+
+        return;
+    }
+
+
+    if(quantidade > Number(produto.estoque || 0)){
+
+        alert(
+            "Estoque insuficiente.\n\n" +
+            "Estoque disponível: " +
+            produto.estoque
+        );
+
+        return;
+    }
+
+
+    /*
+       Só baixa estoque depois
+       de todas as validações.
+    */
+
+    produto.estoque =
+        Number(produto.estoque || 0) - quantidade;
+
+
+    salvarProdutos();
+
+
+    renderProdutos();
+
+    atualizarDashboard();
+
+
+    alert(
+        "Venda registrada com sucesso!\n\n" +
+        "Produto: " + produto.nome +
+        "\nQuantidade: " + quantidade +
+        "\nTotal: " +
+        document.getElementById("vendaSubtotal").textContent
+    );
+
+
+    prepararVenda();
 
 }
-function prepararVenda(){
 
     const clienteSelect = document.getElementById("vendaCliente");
     const produtoSelect = document.getElementById("vendaProduto");
