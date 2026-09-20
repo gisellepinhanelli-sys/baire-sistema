@@ -1269,7 +1269,92 @@ document.getElementById("produtoPrecoIdeal").value = "";
         behavior:"smooth"
     });
 }
+/* =========================
+   CÁLCULO DE MARGEM DO PRODUTO
+========================= */
 
+function calcularPrecoProduto(){
+
+    const custo = Number(
+        document.getElementById("produtoCusto").value
+    ) || 0;
+
+    const margemMinima = Number(
+        document.getElementById("produtoMargemMinima").value
+    ) || 40;
+
+    const margemIdeal = Number(
+        document.getElementById("produtoMargemIdeal").value
+    ) || 100;
+
+
+    /*
+       PREÇO MÍNIMO
+
+       Custo + 40% sobre o custo
+
+       Exemplo:
+       Custo R$ 100
+       Margem 40%
+       Preço mínimo = R$ 140
+    */
+
+    const precoMinimo =
+        custo * (1 + margemMinima / 100);
+
+
+    /*
+       PREÇO IDEAL
+
+       Custo + 100% sobre o custo
+
+       Exemplo:
+       Custo R$ 100
+       Margem 100%
+       Preço ideal = R$ 200
+    */
+
+    const precoIdeal =
+        custo * (1 + margemIdeal / 100);
+
+
+    document.getElementById("produtoPrecoMinimo").value =
+        precoMinimo.toFixed(2);
+
+    document.getElementById("produtoPrecoIdeal").value =
+        precoIdeal.toFixed(2);
+
+
+    /*
+       Se o preço de venda estiver vazio,
+       colocamos automaticamente o preço ideal.
+    */
+
+    const venda =
+        document.getElementById("produtoVenda").value;
+
+    if(venda === "" && custo > 0){
+
+        document.getElementById("produtoVenda").value =
+            precoIdeal.toFixed(2);
+
+    }
+
+}
+    document.getElementById("produtoCusto").addEventListener(
+    "input",
+    calcularPrecoProduto
+);
+
+document.getElementById("produtoMargemMinima").addEventListener(
+    "input",
+    calcularPrecoProduto
+);
+
+document.getElementById("produtoMargemIdeal").addEventListener(
+    "input",
+    calcularPrecoProduto
+);
 
 function fecharProdutoForm(){
 
