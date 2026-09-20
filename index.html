@@ -2206,7 +2206,42 @@ setTimeout(function(){
     renderProdutos();
     atualizarDashboard();
 }, 100);
+function calcularPrecosProduto(){
 
+    const custo = Number(
+        document.getElementById("produtoCusto").value
+    ) || 0;
+
+    const margemMinima = Number(
+        document.getElementById("produtoMargemMinima").value
+    ) || 40;
+
+    const margemIdeal = Number(
+        document.getElementById("produtoMargemIdeal").value
+    ) || 100;
+
+    const precoMinimo =
+        custo * (1 + margemMinima / 100);
+
+    const precoIdeal =
+        custo * (1 + margemIdeal / 100);
+
+    document.getElementById("produtoPrecoMinimo").value =
+        precoMinimo.toFixed(2);
+
+    document.getElementById("produtoPrecoIdeal").value =
+        precoIdeal.toFixed(2);
+}
+
+
+document.getElementById("produtoCusto")
+    .addEventListener("input", calcularPrecosProduto);
+
+document.getElementById("produtoMargemMinima")
+    .addEventListener("input", calcularPrecosProduto);
+
+document.getElementById("produtoMargemIdeal")
+    .addEventListener("input", calcularPrecosProduto);
 </script>
 
 </body>
