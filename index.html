@@ -1276,7 +1276,50 @@ function fecharProdutoForm(){
     document.getElementById("produtoFormPanel").classList.add("hidden");
 }
 
+function calcularPrecosProduto(){
 
+    const campoCusto = document.getElementById("produtoCusto");
+    const campoMargemMinima = document.getElementById("produtoMargemMinima");
+    const campoMargemIdeal = document.getElementById("produtoMargemIdeal");
+    const campoPrecoMinimo = document.getElementById("produtoPrecoMinimo");
+    const campoPrecoIdeal = document.getElementById("produtoPrecoIdeal");
+
+    if(
+        !campoCusto ||
+        !campoMargemMinima ||
+        !campoMargemIdeal ||
+        !campoPrecoMinimo ||
+        !campoPrecoIdeal
+    ){
+        return;
+    }
+
+    const custo = Number(campoCusto.value) || 0;
+    const margemMinima = Number(campoMargemMinima.value) || 40;
+    const margemIdeal = Number(campoMargemIdeal.value) || 100;
+
+    const precoMinimo = custo * (1 + margemMinima / 100);
+    const precoIdeal = custo * (1 + margemIdeal / 100);
+
+    campoPrecoMinimo.value = precoMinimo.toFixed(2);
+    campoPrecoIdeal.value = precoIdeal.toFixed(2);
+}
+
+
+document.getElementById("produtoCusto").addEventListener(
+    "input",
+    calcularPrecosProduto
+);
+
+document.getElementById("produtoMargemMinima").addEventListener(
+    "input",
+    calcularPrecosProduto
+);
+
+document.getElementById("produtoMargemIdeal").addEventListener(
+    "input",
+    calcularPrecosProduto
+);
 document.getElementById("produtoForm").addEventListener("submit", function(e){
 
     e.preventDefault();
