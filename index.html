@@ -849,14 +849,14 @@ td{
    <section id="screen-vendas" class="screen">
 
     <div class="topbar">
-        <h2>Vendas</h2>
+        <h2>💰 Vendas</h2>
     </div>
 
     <div class="panel">
 
         <h3>Nova Venda</h3>
 
-        <div class="form-grid">
+        <div class="form-grid" style="margin-top:20px;">
 
             <div class="form-group">
                 <label>Cliente</label>
@@ -874,27 +874,54 @@ td{
 
             <div class="form-group">
                 <label>Quantidade</label>
-                <input type="number" id="vendaQuantidade" min="1" value="1">
+                <input
+                    type="number"
+                    id="vendaQuantidade"
+                    min="1"
+                    value="1"
+                >
             </div>
 
             <div class="form-group">
-                <label>Preço de venda</label>
-                <input type="number" id="vendaPreco" min="0" step="0.01">
+                <label>Custo unitário</label>
+                <input
+                    type="number"
+                    id="vendaCusto"
+                    readonly
+                    style="background:#f1f5f9;"
+                >
             </div>
 
             <div class="form-group">
-                <label>Custo do produto</label>
-                <input type="number" id="vendaCusto" readonly>
+                <label>Preço mínimo — 40%</label>
+                <input
+                    type="number"
+                    id="vendaPrecoMinimo"
+                    readonly
+                    style="background:#fff7ed;color:#c2410c;font-weight:bold;"
+                >
             </div>
 
             <div class="form-group">
-                <label>Preço mínimo recomendado</label>
-                <input type="number" id="vendaPrecoMinimo" readonly>
+                <label>Preço ideal — 100%</label>
+                <input
+                    type="number"
+                    id="vendaPrecoIdeal"
+                    readonly
+                    style="background:#ecfdf5;color:#16803a;font-weight:bold;"
+                >
             </div>
-<div class="form-group">
-    <label>Preço ideal para lucro</label>
-    <input type="number" id="vendaPrecoIdeal" readonly>
-</div>
+
+            <div class="form-group">
+                <label>Preço de venda unitário</label>
+                <input
+                    type="number"
+                    id="vendaPreco"
+                    min="0"
+                    step="0.01"
+                >
+            </div>
+
             <div class="form-group">
                 <label>Forma de pagamento</label>
                 <select id="vendaPagamento">
@@ -907,75 +934,141 @@ td{
                 <label>Entrega</label>
                 <select id="vendaEntrega">
                     <option value="Retirada">Retirada</option>
-                    <option value="Motoboy">Motoboy - R$ 10,00</option>
+                    <option value="Motoboy">Motoboy</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>Custo do motoboy (R$)</label>
+                <input
+                    type="number"
+                    id="vendaMotoboy"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Outros custos (R$)</label>
+                <input
+                    type="number"
+                    id="vendaOutrosCustos"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                >
             </div>
 
         </div>
 
-        <div class="panel" style="margin-top:20px;">
+    </div>
 
-            <h3>Resumo da Venda</h3>
 
-            <p>Subtotal: <strong id="vendaSubtotal">R$ 0,00</strong></p>
+    <!-- INDICADOR DE MARGEM -->
 
-            <p>Custo do produto: <strong id="vendaCustoTotal">R$ 0,00</strong></p>
+    <div
+        id="vendaAlertaMargem"
+        class="panel"
+        style="margin-top:20px;background:#f8fafc;"
+    >
 
-            <p>Motoboy: <strong id="vendaCustoMotoboy">R$ 0,00</strong></p>
+        <h3>📊 Análise da margem</h3>
 
-            <p>Boleto: <strong id="vendaCustoBoleto">R$ 0,00</strong></p>
+        <p id="vendaStatusMargem" style="margin-top:10px;font-weight:bold;">
+            Selecione um produto e informe o preço de venda.
+        </p>
 
-            <p style="font-size:18px;">
-                <strong>Lucro real: <span id="vendaLucroReal">R$ 0,00</span></strong>
+    </div>
+
+
+    <!-- RESUMO -->
+
+    <div class="panel" style="margin-top:20px;">
+
+        <h3>Resumo financeiro da venda</h3>
+
+        <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:15px;
+            margin-top:20px;
+        ">
+
+            <div class="card">
+                <div class="card-title">Subtotal</div>
+                <div class="card-value" id="vendaSubtotal">
+                    R$ 0,00
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Custo dos produtos</div>
+                <div class="card-value" id="vendaCustoTotal">
+                    R$ 0,00
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Motoboy</div>
+                <div class="card-value" id="vendaCustoMotoboy">
+                    R$ 0,00
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Taxa boleto</div>
+                <div class="card-value" id="vendaCustoBoleto">
+                    R$ 0,00
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Outros custos</div>
+                <div class="card-value" id="vendaCustoOutros">
+                    R$ 0,00
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Lucro real</div>
+                <div
+                    class="card-value"
+                    id="vendaLucroReal"
+                >
+                    R$ 0,00
+                </div>
+            </div>
+
+        </div>
+
+        <div style="
+            margin-top:20px;
+            padding:18px;
+            background:#f8fafc;
+            border-radius:8px;
+        ">
+
+            <p>
+                Margem real da venda:
+                <strong id="vendaMargemReal">0%</strong>
             </p>
 
         </div>
 
-              <button type="button" class="btn-primary" onclick="salvarVenda()">
-            💾 Salvar Venda
-        </button>
+        <div class="form-actions">
 
-    </div>
-
-    <div class="panel" style="margin-top:20px;">
-
-        <div class="toolbar">
-            <h3>Histórico de Vendas</h3>
-
-            <input
-                class="search"
-                id="vendaBusca"
-                placeholder="🔎 Pesquisar venda..."
-                oninput="renderVendas()"
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="salvarVenda()"
             >
-        </div>
-
-        <div class="table-container">
-
-            <table>
-
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Cliente</th>
-                        <th>Produto</th>
-                        <th>Qtd.</th>
-                        <th>Total</th>
-                        <th>Pagamento</th>
-                        <th>Entrega</th>
-                        <th>Lucro</th>
-                    <th>Ações</th>
-                </thead>
-
-                <tbody id="vendasTabela"></tbody>
-
-            </table>
+                💾 Salvar Venda
+            </button>
 
         </div>
 
     </div>
-
-</section>
 
 </section>
 
