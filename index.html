@@ -2101,6 +2101,10 @@ document.getElementById("vendaEntrega")
    SALVAR VENDA
 ========================= */
 
+/* =========================
+   SALVAR VENDA
+========================= */
+
 function salvarVenda(){
 
     const clienteIndex =
@@ -2110,27 +2114,15 @@ function salvarVenda(){
         document.getElementById("vendaProduto").value;
 
     const quantidade =
-        Number(
-            document.getElementById("vendaQuantidade").value
-        ) || 0;
+        Number(document.getElementById("vendaQuantidade").value || 0);
 
     const preco =
-        Number(
-            document.getElementById("vendaPreco").value
-        ) || 0;
+        Number(document.getElementById("vendaPreco").value || 0);
 
 
-    /* CLIENTE */
-
-    if(clienteIndex === ""){
-
-        alert("Selecione o cliente.");
-
-        return;
-    }
-
-
-    /* PRODUTO */
+    /* =========================
+       VALIDAÇÕES
+    ========================= */
 
     if(produtoIndex === ""){
 
@@ -2140,8 +2132,6 @@ function salvarVenda(){
     }
 
 
-    /* QUANTIDADE */
-
     if(quantidade <= 0){
 
         alert("Informe uma quantidade válida.");
@@ -2149,8 +2139,6 @@ function salvarVenda(){
         return;
     }
 
-
-    /* PREÇO */
 
     if(preco <= 0){
 
@@ -2172,14 +2160,16 @@ function salvarVenda(){
     }
 
 
-    /* ESTOQUE */
+    const estoqueAtual =
+        Number(produto.estoque || 0);
 
-    if(quantidade > Number(produto.estoque || 0)){
+
+    if(quantidade > estoqueAtual){
 
         alert(
             "Estoque insuficiente.\n\n" +
             "Estoque disponível: " +
-            produto.estoque
+            estoqueAtual
         );
 
         return;
@@ -2187,52 +2177,19 @@ function salvarVenda(){
 
 
     /* =========================
-       CALCULAR CUSTOS
-    ========================= */
-
-    const pagamento =
-        document.getElementById("vendaPagamento").value;
-
-    const entrega =
-        document.getElementById("vendaEntrega").value;
-
-
-    const custoProduto =
-        Number(produto.custo || 0);
-
-
-    const subtotal =
-        quantidade * preco;
-
-
-    const custoProdutos =
-        quantidade * custoProduto;
-
-
-    const custoMotoboy =
-        entrega === "Motoboy" ? 10 : 0;
-
-
-    const custoBoleto =
-        pagamento === "Boleto" ? 3 : 0;
-
-
-    const lucroReal =
-        subtotal
-        - custoProdutos
-        - custoMotoboy
-        - custoBoleto;
-
-
-    /* =========================
        BAIXAR ESTOQUE
     ========================= */
 
     produto.estoque =
-        Number(produto.estoque || 0) - quantidade;
+        estoqueAtual - quantidade;
 
 
     salvarProdutos();
+
+
+    /* =========================
+       ATUALIZAR SISTEMA
+    ========================= */
 
     renderProdutos();
 
@@ -2240,105 +2197,109 @@ function salvarVenda(){
 
 
     /* =========================
-       REGISTRAR VENDA
-    ========================= */
-
-    const vendas =
-        JSON.parse(
-            localStorage.getItem("baire_vendas") || "[]"
-        );
-
-
-    vendas.push({
-
-        data:
-            new Date().toISOString(),
-
-        cliente:
-            clientes[Number(clienteIndex)]
-                ? clientes[Number(clienteIndex)].nome
-                : "",
-
-        produto:
-            produto.nome,
-
-        codigo:
-            produto.codigo,
-
-        quantidade:
-            quantidade,
-
-        preco:
-            preco,
-
-        subtotal:
-            subtotal,
-
-        custoProduto:
-            custoProdutos,
-
-        custoMotoboy:
-            custoMotoboy,
-
-        custoBoleto:
-            custoBoleto,
-
-        lucroReal:
-            lucroReal,
-
-        pagamento:
-            pagamento,
-
-        entrega:
-            entrega
-
-    });
-
-
-    localStorage.setItem(
-        "baire_vendas",
-        JSON.stringify(vendas)
-    );
-
-
-    /* =========================
        MENSAGEM
     ========================= */
 
+    const subtotalElement =
+        document.getElementById("vendaSubtotal");
+
+
+    const totalVenda =
+        subtotalElement
+            ? subtotalElement.textContent
+            : "R$ 0,00";
+
+
     alert(
         "Venda registrada com sucesso!\n\n" +
-
-        "Produto: " +
-        produto.nome +
-
-        "\nQuantidade: " +
-        quantidade +
-
-        "\nTotal: " +
-        formatarMoeda(subtotal) +
-
-        "\nLucro real: " +
-        formatarMoeda(lucroReal)
+        "Produto: " + produto.nome +
+        "\nQuantidade: " + quantidade +
+        "\nTotal: " + totalVenda
     );
 
 
     /* =========================
-       LIMPAR VENDA
+       LIMPAR NOVA VENDA
     ========================= */
 
     prepararVenda();
 
-    document.getElementById("vendaQuantidade").value = 1;
+}
 
-    document.getElementById("vendaPreco").value = "";
 
-    document.getElementById("vendaCusto").value = "";
+/* =========================
+   PREPARAR VENDA
+========================= */
 
-    document.getElementById("vendaPrecoMinimo").value = "";
+function prepararVenda(){
 
-    document.getElementById("vendaPrecoIdeal").value = "";
+    const clienteSelect =
+        document.getElementById("vendaCliente");
 
-    calcularVenda();
+    const produtoSelect =
+        document.getElementById("vendaProduto");
+
+
+    if(!clienteSelect || !produtoSelect){
+
+        return;
+    }
+
+
+    /* =========================
+       CLIENTES
+    ========================= */
+
+    clienteSelect.innerHTML = `
+        <option value="">
+            Selecione o cliente
+        </option>
+    `;
+
+
+    clientes.forEach(function(cliente, index){
+
+        clienteSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(cliente.nome || "")}
+            </option>
+        `;
+
+    });
+
+
+    /* =========================
+       PRODUTOS
+    ========================= */
+
+    produtoSelect.innerHTML = `
+        <option value="">
+            Selecione o produto
+        </option>
+    `;
+
+
+    produtos.forEach(function(produto, index){
+
+        produtoSelect.innerHTML += `
+            <option value="${index}">
+                ${escapeHTML(produto.nome || "")}
+                - ${escapeHTML(produto.codigo || "")}
+            </option>
+        `;
+
+    });
+
+
+    /* =========================
+       CALCULAR VENDA
+    ========================= */
+
+    if(typeof calcularVenda === "function"){
+
+        calcularVenda();
+
+    }
 
 }
 /* =========================
