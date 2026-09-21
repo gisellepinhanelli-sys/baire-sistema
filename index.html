@@ -566,17 +566,567 @@ tr:hover td{background:#f8fafc}
 </section>
 
 <section id="screen-impressoras" class="screen">
-  <div class="topbar">
-    <h2>Impressoras</h2>
-    <button class="btn btn-primary" onclick="novoCadastroSimples('impressoras')">+ Nova Impressora</button>
-  </div>
-  <div class="panel">
-    <h3>Controle de Impressoras</h3>
-    <p>Área preparada para cadastro de marca, modelo, número de série, cliente, contador e histórico.</p>
-    <div id="impressorasLista" class="empty">Nenhuma impressora cadastrada.</div>
-  </div>
-</section>
 
+    <div class="topbar">
+
+        <div>
+            <h2>🖨️ Controle de Impressoras</h2>
+            <p style="margin-top:6px;color:#64748b;">
+                Controle do parque de equipamentos, contadores, toner e histórico.
+            </p>
+        </div>
+
+        <button
+            class="btn btn-primary"
+            onclick="novaImpressora()">
+            + Nova Impressora
+        </button>
+
+    </div>
+
+
+    <!-- RESUMO -->
+
+    <div class="cards">
+
+        <div class="card">
+            <div class="card-title">
+                Total de impressoras
+            </div>
+
+            <div
+                class="card-value"
+                id="impTotal">
+                0
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-title">
+                Equipamentos ativos
+            </div>
+
+            <div
+                class="card-value"
+                id="impAtivas">
+                0
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-title">
+                Em manutenção
+            </div>
+
+            <div
+                class="card-value"
+                id="impManutencao">
+                0
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-title">
+                Páginas controladas
+            </div>
+
+            <div
+                class="card-value"
+                id="impPaginas">
+                0
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- FORMULÁRIO -->
+
+    <div
+        id="impressoraFormPanel"
+        class="panel hidden">
+
+        <h3 id="impressoraFormTitle">
+            Nova Impressora
+        </h3>
+
+
+        <form id="impressoraForm">
+
+            <input
+                type="hidden"
+                id="impressoraIndex">
+
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label>
+                        Cliente
+                    </label>
+
+                    <select id="impressoraCliente">
+
+                        <option value="">
+                            Selecione o cliente
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Patrimônio
+                    </label>
+
+                    <input
+                        id="impressoraPatrimonio"
+                        placeholder="Ex.: BAIRE-001">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Fabricante *
+                    </label>
+
+                    <input
+                        id="impressoraMarca"
+                        placeholder="HP, Brother, Epson, Canon..."
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Modelo *
+                    </label>
+
+                    <input
+                        id="impressoraModelo"
+                        placeholder="Ex.: HP LaserJet M404"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Número de série
+                    </label>
+
+                    <input
+                        id="impressoraSerie">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Tipo
+                    </label>
+
+                    <select id="impressoraTipo">
+
+                        <option value="Laser">
+                            Laser
+                        </option>
+
+                        <option value="Jato de tinta">
+                            Jato de tinta
+                        </option>
+
+                        <option value="Multifuncional">
+                            Multifuncional
+                        </option>
+
+                        <option value="Térmica">
+                            Térmica
+                        </option>
+
+                        <option value="Outro">
+                            Outro
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        IP / Endereço de rede
+                    </label>
+
+                    <input
+                        id="impressoraIP"
+                        placeholder="Ex.: 192.168.0.100">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Localização / Setor
+                    </label>
+
+                    <input
+                        id="impressoraLocalizacao"
+                        placeholder="Recepção, Financeiro, RH...">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Contador inicial
+                    </label>
+
+                    <input
+                        type="number"
+                        id="impressoraContadorInicial"
+                        min="0"
+                        value="0">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Contador atual
+                    </label>
+
+                    <input
+                        type="number"
+                        id="impressoraContadorAtual"
+                        min="0"
+                        value="0">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Nível de toner (%)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="impressoraToner"
+                        min="0"
+                        max="100"
+                        value="100">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Última troca de toner
+                    </label>
+
+                    <input
+                        type="date"
+                        id="impressoraUltimoToner">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Status
+                    </label>
+
+                    <select id="impressoraStatus">
+
+                        <option value="Ativa">
+                            Ativa
+                        </option>
+
+                        <option value="Em manutenção">
+                            Em manutenção
+                        </option>
+
+                        <option value="Parada">
+                            Parada
+                        </option>
+
+                        <option value="Baixada">
+                            Baixada
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group full">
+
+                    <label>
+                        Observações
+                    </label>
+
+                    <textarea
+                        id="impressoraObservacoes"
+                        placeholder="Informações adicionais sobre o equipamento...">
+                    </textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    💾 Salvar Impressora
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="fecharImpressoraForm()">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- FILTROS -->
+
+    <div class="panel">
+
+        <div class="toolbar">
+
+            <input
+                class="search"
+                id="impressoraBusca"
+                placeholder="🔎 Pesquisar cliente, patrimônio, marca, modelo, série...">
+
+
+            <select
+                id="impressoraFiltroStatus"
+                style="max-width:220px;">
+
+                <option value="">
+                    Todos os status
+                </option>
+
+                <option value="Ativa">
+                    Ativas
+                </option>
+
+                <option value="Em manutenção">
+                    Em manutenção
+                </option>
+
+                <option value="Parada">
+                    Paradas
+                </option>
+
+                <option value="Baixada">
+                    Baixadas
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Patrimônio
+                        </th>
+
+                        <th>
+                            Cliente
+                        </th>
+
+                        <th>
+                            Equipamento
+                        </th>
+
+                        <th>
+                            Série
+                        </th>
+
+                        <th>
+                            Contador
+                        </th>
+
+                        <th>
+                            Páginas
+                        </th>
+
+                        <th>
+                            Toner
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Ações
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    id="impressorasTabela">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- HISTÓRICO -->
+
+    <div
+        id="historicoImpressoraPanel"
+        class="panel hidden">
+
+        <div class="topbar">
+
+            <div>
+
+                <h3>
+                    Histórico da Impressora
+                </h3>
+
+                <p
+                    id="historicoImpressoraTitulo"
+                    style="color:#64748b;margin-top:5px;">
+                </p>
+
+            </div>
+
+
+            <button
+                class="btn btn-secondary"
+                onclick="fecharHistoricoImpressora()">
+
+                Fechar
+
+            </button>
+
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label>
+                    Novo contador
+                </label>
+
+                <input
+                    type="number"
+                    id="novoContadorImpressora"
+                    min="0">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Nível de toner (%)
+                </label>
+
+                <input
+                    type="number"
+                    id="novoTonerImpressora"
+                    min="0"
+                    max="100">
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>
+                    Observação da leitura
+                </label>
+
+                <textarea
+                    id="observacaoLeituraImpressora"
+                    placeholder="Ex.: leitura mensal, troca de toner, manutenção...">
+                </textarea>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button
+                class="btn btn-success"
+                onclick="registrarLeituraImpressora()">
+
+                📊 Registrar Leitura
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="historicoLeituras"
+            style="margin-top:20px;">
+        </div>
+
+    </div>
+
+</section>
 <section id="screen-vendas" class="screen">
   <div class="topbar">
     <h2>Vendas</h2>
