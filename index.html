@@ -2840,7 +2840,1347 @@ function novoCadastroSimples(modulo){
 /* =========================================================
    EVENTOS
    ========================================================= */
+/* =========================================================
+   CONTROLE DE IMPRESSORAS
+========================================================= */
 
+const STORAGE_IMPRESSORAS = "baire_impressoras";
+
+let impressoras = [];
+
+let impressoraHistoricoIndex = null;
+
+
+/* =========================
+   CARREGAR IMPRESSORAS
+========================= */
+
+function carregarImpressoras(){
+
+    try{
+
+        const dados =
+            localStorage.getItem(
+                STORAGE_IMPRESSORAS
+            );
+
+        impressoras =
+            dados
+                ? JSON.parse(dados)
+                : [];
+
+    }catch(e){
+
+        console.error(
+            "Erro ao carregar impressoras:",
+            e
+        );
+
+        impressoras = [];
+
+    }
+
+}
+
+
+/* =========================
+   SALVAR IMPRESSORAS
+========================= */
+
+function salvarImpressoras(){
+
+    localStorage.setItem(
+        STORAGE_IMPRESSORAS,
+        JSON.stringify(impressoras)
+    );
+
+}
+
+
+/* =========================
+   NOVA IMPRESSORA
+========================= */
+
+function novaImpressora(){
+
+    const form =
+        document.getElementById(
+            "impressoraForm"
+        );
+
+    if(!form){
+        return;
+    }
+
+    form.reset();
+
+    document.getElementById(
+        "impressoraIndex"
+    ).value = "";
+
+    document.getElementById(
+        "impressoraContadorInicial"
+    ).value = 0;
+
+    document.getElementById(
+        "impressoraContadorAtual"
+    ).value = 0;
+
+    document.getElementById(
+        "impressoraToner"
+    ).value = 100;
+
+    document.getElementById(
+        "impressoraStatus"
+    ).value = "Ativa";
+
+    document.getElementById(
+        "impressoraFormTitle"
+    ).textContent =
+        "Nova Impressora";
+
+    preencherClientesSelect(
+        "impressoraCliente"
+    );
+
+    document.getElementById(
+        "impressoraFormPanel"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =========================
+   FECHAR FORMULÁRIO
+========================= */
+
+function fecharImpressoraForm(){
+
+    document.getElementById(
+        "impressoraFormPanel"
+    ).classList.add(
+        "hidden"
+    );
+
+}
+
+
+/* =========================
+   SALVAR IMPRESSORA
+========================= */
+
+function salvarImpressora(event){
+
+    event.preventDefault();
+
+    const index =
+        document.getElementById(
+            "impressoraIndex"
+        ).value;
+
+
+    const clienteIndex =
+        document.getElementById(
+            "impressoraCliente"
+        ).value;
+
+
+    const cliente =
+        clienteIndex === ""
+            ? null
+            : clientes[
+                Number(clienteIndex)
+              ];
+
+
+    const contadorInicial =
+        Math.max(
+            0,
+            numero(
+                document.getElementById(
+                    "impressoraContadorInicial"
+                ).value
+            )
+        );
+
+
+    const contadorAtual =
+        Math.max(
+            contadorInicial,
+            numero(
+                document.getElementById(
+                    "impressoraContadorAtual"
+                ).value
+            )
+        );
+
+
+    const impressora = {
+
+        id:
+            index === ""
+                ? Date.now()
+                : impressoras[
+                    Number(index)
+                  ].id,
+
+        clienteId:
+            cliente
+                ? cliente.id
+                : null,
+
+        clienteNome:
+            cliente
+                ? cliente.nome
+                : "Sem cliente",
+
+        patrimonio:
+            document.getElementById(
+                "impressoraPatrimonio"
+            ).value.trim(),
+
+        marca:
+            document.getElementById(
+                "impressoraMarca"
+            ).value.trim(),
+
+        modelo:
+            document.getElementById(
+                "impressoraModelo"
+            ).value.trim(),
+
+        serie:
+            document.getElementById(
+                "impressoraSerie"
+            ).value.trim(),
+
+        tipo:
+            document.getElementById(
+                "impressoraTipo"
+            ).value,
+
+        ip:
+            document.getElementById(
+                "impressoraIP"
+            ).value.trim(),
+
+        localizacao:
+            document.getElementById(
+                "impressoraLocalizacao"
+            ).value.trim(),
+
+        contadorInicial:
+            contadorInicial,
+
+        contadorAtual:
+            contadorAtual,
+
+        toner:
+            Math.min(
+                100,
+                Math.max(
+                    0,
+                    numero(
+                        document.getElementById(
+                            "impressoraToner"
+                        ).value
+                    )
+                )
+            ),
+
+        ultimoToner:
+            document.getElementById(
+                "impressoraUltimoToner"
+            ).value,
+
+        status:
+            document.getElementById(
+                "impressoraStatus"
+            ).value,
+
+        observacoes:
+            document.getElementById(
+                "impressoraObservacoes"
+            ).value.trim(),
+
+        historico:
+            index === ""
+                ? []
+                : (
+                    impressoras[
+                        Number(index)
+                    ].historico || []
+                )
+
+    };
+
+
+    if(
+        !impressora.marca ||
+        !impressora.modelo
+    ){
+
+        alert(
+            "Informe a marca e o modelo da impressora."
+        );
+
+        return;
+
+    }
+
+
+    if(index === ""){
+
+        impressoras.push(
+            impressora
+        );
+
+    }else{
+
+        impressoras[
+            Number(index)
+        ] = impressora;
+
+    }
+
+
+    salvarImpressoras();
+
+    fecharImpressoraForm();
+
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+
+    alert(
+        "Impressora salva com sucesso."
+    );
+
+}
+
+
+/* =========================
+   EDITAR
+========================= */
+
+function editarImpressora(index){
+
+    const p =
+        impressoras[index];
+
+    if(!p){
+        return;
+    }
+
+
+    preencherClientesSelect(
+        "impressoraCliente"
+    );
+
+
+    document.getElementById(
+        "impressoraIndex"
+    ).value = index;
+
+
+    const clienteIndex =
+        clientes.findIndex(
+            function(cliente){
+
+                return String(cliente.id) ===
+                       String(p.clienteId);
+
+            }
+        );
+
+
+    document.getElementById(
+        "impressoraCliente"
+    ).value =
+        clienteIndex >= 0
+            ? clienteIndex
+            : "";
+
+
+    document.getElementById(
+        "impressoraPatrimonio"
+    ).value =
+        p.patrimonio || "";
+
+
+    document.getElementById(
+        "impressoraMarca"
+    ).value =
+        p.marca || "";
+
+
+    document.getElementById(
+        "impressoraModelo"
+    ).value =
+        p.modelo || "";
+
+
+    document.getElementById(
+        "impressoraSerie"
+    ).value =
+        p.serie || "";
+
+
+    document.getElementById(
+        "impressoraTipo"
+    ).value =
+        p.tipo || "Laser";
+
+
+    document.getElementById(
+        "impressoraIP"
+    ).value =
+        p.ip || "";
+
+
+    document.getElementById(
+        "impressoraLocalizacao"
+    ).value =
+        p.localizacao || "";
+
+
+    document.getElementById(
+        "impressoraContadorInicial"
+    ).value =
+        p.contadorInicial || 0;
+
+
+    document.getElementById(
+        "impressoraContadorAtual"
+    ).value =
+        p.contadorAtual || 0;
+
+
+    document.getElementById(
+        "impressoraToner"
+    ).value =
+        p.toner ?? 100;
+
+
+    document.getElementById(
+        "impressoraUltimoToner"
+    ).value =
+        p.ultimoToner || "";
+
+
+    document.getElementById(
+        "impressoraStatus"
+    ).value =
+        p.status || "Ativa";
+
+
+    document.getElementById(
+        "impressoraObservacoes"
+    ).value =
+        p.observacoes || "";
+
+
+    document.getElementById(
+        "impressoraFormTitle"
+    ).textContent =
+        "Editar Impressora";
+
+
+    document.getElementById(
+        "impressoraFormPanel"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =========================
+   EXCLUIR
+========================= */
+
+function excluirImpressora(index){
+
+    const p =
+        impressoras[index];
+
+    if(!p){
+        return;
+    }
+
+
+    if(
+        !confirm(
+            "Deseja realmente excluir esta impressora?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    impressoras.splice(
+        index,
+        1
+    );
+
+
+    salvarImpressoras();
+
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+
+}
+
+
+/* =========================
+   STATUS VISUAL
+========================= */
+
+function badgeStatusImpressora(status){
+
+    if(status === "Ativa"){
+
+        return `
+            <span class="badge badge-green">
+                ● Ativa
+            </span>
+        `;
+
+    }
+
+
+    if(status === "Em manutenção"){
+
+        return `
+            <span class="badge badge-yellow">
+                🔧 Manutenção
+            </span>
+        `;
+
+    }
+
+
+    if(status === "Parada"){
+
+        return `
+            <span class="badge badge-red">
+                ⚠ Parada
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="badge badge-red">
+            Baixada
+        </span>
+    `;
+
+}
+
+
+/* =========================
+   TONER VISUAL
+========================= */
+
+function badgeTonerImpressora(toner){
+
+    toner =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                numero(toner)
+            )
+        );
+
+
+    if(toner <= 10){
+
+        return `
+            <span class="badge badge-red">
+                ${toner}%
+            </span>
+        `;
+
+    }
+
+
+    if(toner <= 25){
+
+        return `
+            <span class="badge badge-yellow">
+                ${toner}%
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="badge badge-green">
+            ${toner}%
+        </span>
+    `;
+
+}
+
+
+/* =========================
+   RENDERIZAR IMPRESSORAS
+========================= */
+
+function renderImpressoras(){
+
+    const tabela =
+        document.getElementById(
+            "impressorasTabela"
+        );
+
+
+    if(!tabela){
+        return;
+    }
+
+
+    const busca =
+        String(
+            document.getElementById(
+                "impressoraBusca"
+            )?.value || ""
+        ).toLowerCase();
+
+
+    const filtro =
+        document.getElementById(
+            "impressoraFiltroStatus"
+        )?.value || "";
+
+
+    const lista =
+        impressoras.filter(
+            function(p){
+
+                const texto = [
+
+                    p.patrimonio,
+                    p.clienteNome,
+                    p.marca,
+                    p.modelo,
+                    p.serie,
+                    p.ip,
+                    p.localizacao
+
+                ]
+                .join(" ")
+                .toLowerCase();
+
+
+                const encontrou =
+                    texto.includes(
+                        busca
+                    );
+
+
+                const statusOK =
+                    !filtro ||
+                    p.status === filtro;
+
+
+                return
+                    encontrou &&
+                    statusOK;
+
+            }
+        );
+
+
+    if(lista.length === 0){
+
+        tabela.innerHTML = `
+            <tr>
+                <td
+                    colspan="9"
+                    class="empty">
+
+                    Nenhuma impressora
+                    encontrada.
+
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    tabela.innerHTML =
+        lista.map(
+            function(p){
+
+                const index =
+                    impressoras.indexOf(
+                        p
+                    );
+
+
+                const paginas =
+                    Math.max(
+                        0,
+                        numero(
+                            p.contadorAtual
+                        ) -
+                        numero(
+                            p.contadorInicial
+                        )
+                    );
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                ${
+                                    escapeHTML(
+                                        p.patrimonio ||
+                                        "-"
+                                    )
+                                }
+                            </strong>
+                        </td>
+
+
+                        <td>
+                            ${
+                                escapeHTML(
+                                    p.clienteNome ||
+                                    "Sem cliente"
+                                )
+                            }
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                ${
+                                    escapeHTML(
+                                        p.marca
+                                    )
+                                }
+                            </strong>
+
+                            <br>
+
+                            <small>
+                                ${
+                                    escapeHTML(
+                                        p.modelo
+                                    )
+                                }
+                            </small>
+
+                        </td>
+
+
+                        <td>
+                            ${
+                                escapeHTML(
+                                    p.serie ||
+                                    "-"
+                                )
+                            }
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                numero(
+                                    p.contadorAtual
+                                ).toLocaleString(
+                                    "pt-BR"
+                                )
+                            }
+
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                ${
+                                    paginas.toLocaleString(
+                                        "pt-BR"
+                                    )
+                                }
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                badgeTonerImpressora(
+                                    p.toner
+                                )
+                            }
+
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                badgeStatusImpressora(
+                                    p.status
+                                )
+                            }
+
+                        </td>
+
+
+                        <td>
+
+                            <div
+                                style="
+                                    display:flex;
+                                    gap:5px;
+                                    flex-wrap:wrap;
+                                ">
+
+                                <button
+                                    class="btn btn-small btn-primary"
+                                    onclick="editarImpressora(${index})">
+
+                                    Editar
+
+                                </button>
+
+
+                                <button
+                                    class="btn btn-small btn-success"
+                                    onclick="abrirHistoricoImpressora(${index})">
+
+                                    Contador
+
+                                </button>
+
+
+                                <button
+                                    class="btn btn-small btn-danger"
+                                    onclick="excluirImpressora(${index})">
+
+                                    Excluir
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        )
+        .join("");
+
+}
+
+
+/* =========================
+   RESUMO
+========================= */
+
+function atualizarResumoImpressoras(){
+
+    const total =
+        impressoras.length;
+
+
+    const ativas =
+        impressoras.filter(
+            function(p){
+
+                return p.status ===
+                       "Ativa";
+
+            }
+        ).length;
+
+
+    const manutencao =
+        impressoras.filter(
+            function(p){
+
+                return p.status ===
+                       "Em manutenção";
+
+            }
+        ).length;
+
+
+    const paginas =
+        impressoras.reduce(
+            function(total,p){
+
+                return total +
+                    Math.max(
+                        0,
+                        numero(
+                            p.contadorAtual
+                        ) -
+                        numero(
+                            p.contadorInicial
+                        )
+                    );
+
+            },
+            0
+        );
+
+
+    document.getElementById(
+        "impTotal"
+    ).textContent =
+        total;
+
+
+    document.getElementById(
+        "impAtivas"
+    ).textContent =
+        ativas;
+
+
+    document.getElementById(
+        "impManutencao"
+    ).textContent =
+        manutencao;
+
+
+    document.getElementById(
+        "impPaginas"
+    ).textContent =
+        paginas.toLocaleString(
+            "pt-BR"
+        );
+
+}
+
+
+/* =========================
+   HISTÓRICO
+========================= */
+
+function abrirHistoricoImpressora(index){
+
+    const p =
+        impressoras[index];
+
+    if(!p){
+        return;
+    }
+
+
+    impressoraHistoricoIndex =
+        index;
+
+
+    document.getElementById(
+        "historicoImpressoraTitulo"
+    ).textContent =
+        (
+            p.patrimonio
+                ? p.patrimonio + " - "
+                : ""
+        ) +
+        p.marca +
+        " " +
+        p.modelo;
+
+
+    document.getElementById(
+        "novoContadorImpressora"
+    ).value =
+        p.contadorAtual || 0;
+
+
+    document.getElementById(
+        "novoTonerImpressora"
+    ).value =
+        p.toner ?? 100;
+
+
+    document.getElementById(
+        "observacaoLeituraImpressora"
+    ).value = "";
+
+
+    document.getElementById(
+        "historicoImpressoraPanel"
+    ).classList.remove(
+        "hidden"
+    );
+
+
+    renderHistoricoImpressora();
+
+}
+
+
+/* =========================
+   FECHAR HISTÓRICO
+========================= */
+
+function fecharHistoricoImpressora(){
+
+    impressoraHistoricoIndex =
+        null;
+
+
+    document.getElementById(
+        "historicoImpressoraPanel"
+    ).classList.add(
+        "hidden"
+    );
+
+}
+
+
+/* =========================
+   REGISTRAR LEITURA
+========================= */
+
+function registrarLeituraImpressora(){
+
+    if(
+        impressoraHistoricoIndex ===
+        null
+    ){
+
+        return;
+
+    }
+
+
+    const p =
+        impressoras[
+            impressoraHistoricoIndex
+        ];
+
+
+    if(!p){
+        return;
+    }
+
+
+    const novoContador =
+        numero(
+            document.getElementById(
+                "novoContadorImpressora"
+            ).value
+        );
+
+
+    const contadorAnterior =
+        numero(
+            p.contadorAtual
+        );
+
+
+    if(
+        novoContador <
+        contadorAnterior
+    ){
+
+        alert(
+            "O novo contador não pode ser menor que o contador atual."
+        );
+
+        return;
+
+    }
+
+
+    const novoToner =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                numero(
+                    document.getElementById(
+                        "novoTonerImpressora"
+                    ).value
+                )
+            )
+        );
+
+
+    const leitura = {
+
+        data:
+            new Date().toISOString(),
+
+        contadorAnterior:
+            contadorAnterior,
+
+        contadorNovo:
+            novoContador,
+
+        paginas:
+            novoContador -
+            contadorAnterior,
+
+        toner:
+            novoToner,
+
+        observacao:
+            document.getElementById(
+                "observacaoLeituraImpressora"
+            ).value.trim()
+
+    };
+
+
+    if(!Array.isArray(
+        p.historico
+    )){
+
+        p.historico = [];
+
+    }
+
+
+    p.historico.push(
+        leitura
+    );
+
+
+    p.contadorAtual =
+        novoContador;
+
+
+    p.toner =
+        novoToner;
+
+
+    salvarImpressoras();
+
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+
+    renderHistoricoImpressora();
+
+
+    alert(
+        "Leitura registrada com sucesso."
+    );
+
+}
+
+
+/* =========================
+   RENDER HISTÓRICO
+========================= */
+
+function renderHistoricoImpressora(){
+
+    const div =
+        document.getElementById(
+            "historicoLeituras"
+        );
+
+
+    if(!div){
+        return;
+    }
+
+
+    if(
+        impressoraHistoricoIndex ===
+        null
+    ){
+
+        div.innerHTML = "";
+
+        return;
+
+    }
+
+
+    const p =
+        impressoras[
+            impressoraHistoricoIndex
+        ];
+
+
+    if(
+        !p ||
+        !Array.isArray(
+            p.historico
+        ) ||
+        p.historico.length === 0
+    ){
+
+        div.innerHTML = `
+            <div class="empty">
+                Nenhuma leitura registrada.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const historico =
+        p.historico
+            .slice()
+            .reverse();
+
+
+    div.innerHTML = `
+
+        <h4>
+            Histórico de leituras
+        </h4>
+
+        <div
+            class="table-container"
+            style="margin-top:10px;">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Data
+                        </th>
+
+                        <th>
+                            Contador anterior
+                        </th>
+
+                        <th>
+                            Novo contador
+                        </th>
+
+                        <th>
+                            Páginas
+                        </th>
+
+                        <th>
+                            Toner
+                        </th>
+
+                        <th>
+                            Observação
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${
+                        historico.map(
+                            function(h){
+
+                                return `
+
+                                    <tr>
+
+                                        <td>
+                                            ${
+                                                dataBR(
+                                                    h.data
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                numero(
+                                                    h.contadorAnterior
+                                                ).toLocaleString(
+                                                    "pt-BR"
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                numero(
+                                                    h.contadorNovo
+                                                ).toLocaleString(
+                                                    "pt-BR"
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <strong>
+                                                ${
+                                                    numero(
+                                                        h.paginas
+                                                    ).toLocaleString(
+                                                        "pt-BR"
+                                                    )
+                                                }
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                badgeTonerImpressora(
+                                                    h.toner
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                escapeHTML(
+                                                    h.observacao ||
+                                                    "-"
+                                                )
+                                            }
+                                        </td>
+
+                                    </tr>
+
+                                `;
+
+                            }
+                        ).join("")
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    `;
+
+}
 document.addEventListener("DOMContentLoaded", function(){
 
   carregarDados();
