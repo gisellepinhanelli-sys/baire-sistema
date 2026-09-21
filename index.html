@@ -1851,11 +1851,16 @@ function excluirProduto(index){
 /* =========================
    DASHBOARD
 ========================= */
-
+    
+function showScreen(screen){
 /* =========================
    VENDAS
 ========================= */
+if(screen === "vendas"){
+        prepararVenda();
+    }
 
+}
 function prepararVenda(){
 
     const clienteSelect = document.getElementById("vendaCliente");
