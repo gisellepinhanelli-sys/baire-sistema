@@ -2710,44 +2710,81 @@ function salvarVenda(){
 
 }
 
-    const clienteSelect = document.getElementById("vendaCliente");
-    const produtoSelect = document.getElementById("vendaProduto");
+ /* =========================
+   PREPARAR VENDA
+========================= */
+
+function prepararVenda(){
+
+    const clienteSelect =
+        document.getElementById("vendaCliente");
+
+    const produtoSelect =
+        document.getElementById("vendaProduto");
+
 
     if(!clienteSelect || !produtoSelect){
+
         return;
     }
 
+
+    /* =========================
+       CLIENTES
+    ========================= */
+
     clienteSelect.innerHTML = `
-        <option value="">Selecione o cliente</option>
+        <option value="">
+            Selecione o cliente
+        </option>
     `;
+
 
     clientes.forEach(function(cliente, index){
 
         clienteSelect.innerHTML += `
             <option value="${index}">
-                ${escapeHTML(cliente.nome)}
+                ${escapeHTML(cliente.nome || "")}
             </option>
         `;
 
     });
 
 
+    /* =========================
+       PRODUTOS
+    ========================= */
+
     produtoSelect.innerHTML = `
-        <option value="">Selecione o produto</option>
+        <option value="">
+            Selecione o produto
+        </option>
     `;
+
 
     produtos.forEach(function(produto, index){
 
         produtoSelect.innerHTML += `
             <option value="${index}">
-                ${escapeHTML(produto.nome)} - ${escapeHTML(produto.codigo)}
+                ${escapeHTML(produto.nome || "")}
+                - ${escapeHTML(produto.codigo || "")}
             </option>
         `;
 
     });
 
-}
 
+    /* =========================
+       CALCULAR VENDA
+    ========================= */
+
+    if(typeof calcularVenda === "function"){
+
+        calcularVenda();
+
+    }
+
+}
     function renderVendas(){
 
     const busca = String(
