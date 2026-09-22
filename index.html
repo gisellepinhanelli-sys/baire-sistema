@@ -3493,9 +3493,7 @@ function renderImpressoras(){
                     p.status === filtro;
 
 
-                return
-                    encontrou &&
-                    statusOK;
+                return encontrou && statusOK;
 
             }
         );
@@ -4202,51 +4200,26 @@ document.addEventListener("DOMContentLoaded", function(){
   document.getElementById("vendaProduto").addEventListener("change", function(){
     document.getElementById("vendaPreco").value = "";
     atualizarVendaProduto();
-        const impressoraForm =
-        document.getElementById("impressoraForm");
-
-    if(impressoraForm){
-
-        impressoraForm.addEventListener(
-            "submit",
-            salvarImpressora
-        );
-
-    }
-
-
-    const impressoraBusca =
-        document.getElementById("impressoraBusca");
-
-    if(impressoraBusca){
-
-        impressoraBusca.addEventListener(
-            "input",
-            renderImpressoras
-        );
-
-    }
-
-
-    const impressoraFiltro =
-        document.getElementById(
-            "impressoraFiltroStatus"
-        );
-
-    if(impressoraFiltro){
-
-        impressoraFiltro.addEventListener(
-            "change",
-            renderImpressoras
-        );
-
-    }
-
-
-    renderImpressoras();
-
-    atualizarResumoImpressoras();
   });
+
+  /* CONTROLE DE IMPRESSORAS */
+  const impressoraForm = document.getElementById("impressoraForm");
+  if(impressoraForm){
+    impressoraForm.addEventListener("submit", salvarImpressora);
+  }
+
+  const impressoraBusca = document.getElementById("impressoraBusca");
+  if(impressoraBusca){
+    impressoraBusca.addEventListener("input", renderImpressoras);
+  }
+
+  const impressoraFiltro = document.getElementById("impressoraFiltroStatus");
+  if(impressoraFiltro){
+    impressoraFiltro.addEventListener("change", renderImpressoras);
+  }
+
+  renderImpressoras();
+  atualizarResumoImpressoras();
 
   [
     "vendaQuantidade",
