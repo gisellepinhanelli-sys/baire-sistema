@@ -654,7 +654,7 @@ tr:hover td{background:#f8fafc}
         </h3>
 
 
-        <form id="impressoraForm" onsubmit="return salvarImpressora(event);">
+        <form id="impressoraForm">
 
             <input
                 type="hidden"
@@ -2973,9 +2973,7 @@ function fecharImpressoraForm(){
 
 function salvarImpressora(event){
 
-    if(event){
-        event.preventDefault();
-    }
+    event.preventDefault();
 
     const index =
         document.getElementById(
@@ -3159,8 +3157,6 @@ function salvarImpressora(event){
     alert(
         "Impressora salva com sucesso."
     );
-
-    return false;
 
 }
 
@@ -3497,7 +3493,9 @@ function renderImpressoras(){
                     p.status === filtro;
 
 
-                return encontrou && statusOK;
+                return
+                    encontrou &&
+                    statusOK;
 
             }
         );
@@ -4201,15 +4199,20 @@ document.addEventListener("DOMContentLoaded", function(){
   document.getElementById("produtoMargemMinima").addEventListener("input", calcularPrecosProduto);
   document.getElementById("produtoMargemIdeal").addEventListener("input", calcularPrecosProduto);
 
-  document.getElementById("vendaProduto").addEventListener("change", function(){
-    document.getElementById("vendaPreco").value = "";
-    atualizarVendaProduto();
-  });
+  const vendaProdutoCampo = document.getElementById("vendaProduto");
+  if(vendaProdutoCampo){
+    vendaProdutoCampo.addEventListener("change", function(){
+      document.getElementById("vendaPreco").value = "";
+      atualizarVendaProduto();
+    });
+  }
 
-  /* CONTROLE DE IMPRESSORAS
-     O formulário usa onsubmit diretamente para evitar falhas
-     de cadastro quando algum outro módulo do sistema interfere
-     na inicialização dos eventos. */
+  /* CONTROLE DE IMPRESSORAS */
+  const impressoraForm = document.getElementById("impressoraForm");
+  if(impressoraForm){
+    impressoraForm.addEventListener("submit", salvarImpressora);
+  }
+
   const impressoraBusca = document.getElementById("impressoraBusca");
   if(impressoraBusca){
     impressoraBusca.addEventListener("input", renderImpressoras);
@@ -4253,9 +4256,6 @@ document.addEventListener("DOMContentLoaded", function(){
 window.showScreen = showScreen;
   window.novaImpressora =
     novaImpressora;
-
-window.salvarImpressora =
-    salvarImpressora;
 
 window.fecharImpressoraForm =
     fecharImpressoraForm;
