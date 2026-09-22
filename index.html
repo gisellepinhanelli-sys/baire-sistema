@@ -654,7 +654,7 @@ tr:hover td{background:#f8fafc}
         </h3>
 
 
-        <form id="impressoraForm">
+        <form id="impressoraForm" onsubmit="return salvarImpressora(event);">
 
             <input
                 type="hidden"
@@ -2973,7 +2973,9 @@ function fecharImpressoraForm(){
 
 function salvarImpressora(event){
 
-    event.preventDefault();
+    if(event){
+        event.preventDefault();
+    }
 
     const index =
         document.getElementById(
@@ -3157,6 +3159,8 @@ function salvarImpressora(event){
     alert(
         "Impressora salva com sucesso."
     );
+
+    return false;
 
 }
 
@@ -4202,12 +4206,10 @@ document.addEventListener("DOMContentLoaded", function(){
     atualizarVendaProduto();
   });
 
-  /* CONTROLE DE IMPRESSORAS */
-  const impressoraForm = document.getElementById("impressoraForm");
-  if(impressoraForm){
-    impressoraForm.addEventListener("submit", salvarImpressora);
-  }
-
+  /* CONTROLE DE IMPRESSORAS
+     O formulário usa onsubmit diretamente para evitar falhas
+     de cadastro quando algum outro módulo do sistema interfere
+     na inicialização dos eventos. */
   const impressoraBusca = document.getElementById("impressoraBusca");
   if(impressoraBusca){
     impressoraBusca.addEventListener("input", renderImpressoras);
@@ -4251,6 +4253,9 @@ document.addEventListener("DOMContentLoaded", function(){
 window.showScreen = showScreen;
   window.novaImpressora =
     novaImpressora;
+
+window.salvarImpressora =
+    salvarImpressora;
 
 window.fecharImpressoraForm =
     fecharImpressoraForm;
