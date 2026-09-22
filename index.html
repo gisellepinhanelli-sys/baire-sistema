@@ -257,9 +257,34 @@ tr:hover td{background:#f8fafc}
   .summary-grid{grid-template-columns:1fr}
   .topbar{align-items:flex-start;flex-direction:column}
 }
+
+/* =========================================================
+   ACESSO / USUÁRIOS - CONTROLE LOCAL
+   ========================================================= */
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#174ea6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99999}
+.login-box{width:min(430px,100%);background:#fff;border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{text-align:center;margin-bottom:24px}.login-logo h1{margin:0;color:#174ea6;font-size:34px;letter-spacing:2px}.login-logo p{margin:6px 0 0;color:#64748b}
+.login-error{background:#fef2f2;color:#991b1b;padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:13px}
+.user-bar{display:flex;align-items:center;gap:10px;margin-left:auto;color:#475569;font-size:13px}.user-avatar{width:32px;height:32px;border-radius:50%;background:#dbeafe;color:#1e40af;display:flex;align-items:center;justify-content:center;font-weight:800}
+@media(max-width:700px){.user-bar{margin-left:0}}
+
 </style>
 </head>
 <body>
+
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-box">
+    <div class="login-logo"><h1>BAIRE</h1><p>Sistema Empresarial</p></div>
+    <div id="loginErro" class="login-error hidden"></div>
+    <form id="loginForm">
+      <div class="form-group" style="margin-bottom:14px"><label>Usuário</label><input id="loginUsuario" autocomplete="username" required></div>
+      <div class="form-group" style="margin-bottom:18px"><label>Senha</label><input type="password" id="loginSenha" autocomplete="current-password" required></div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Entrar no sistema</button>
+    </form>
+    <p class="footer-note" style="text-align:center;margin-bottom:0">Acesso local do sistema BAIRE.</p>
+  </div>
+</div>
+
 
 <aside class="sidebar">
   <div class="logo">
@@ -283,6 +308,7 @@ tr:hover td{background:#f8fafc}
 </aside>
 
 <main class="main">
+<div id="userBar" class="user-bar" style="justify-content:flex-end;margin-bottom:10px"></div>
 
 <section id="screen-dashboard" class="screen active">
   <div class="topbar">
@@ -1513,6 +1539,29 @@ tr:hover td{background:#f8fafc}
     <div class="form-actions">
       <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar Configurações</button>
     </div>
+  </div>
+
+
+  <div class="panel" id="usuariosPanel">
+    <div class="topbar" style="margin-bottom:12px">
+      <div><h3 style="margin-bottom:4px">Usuários e acessos</h3><p style="margin:0;color:#64748b;font-size:13px">Crie acessos para quem utiliza o sistema neste navegador.</p></div>
+      <button class="btn btn-primary" type="button" onclick="novoUsuario()">+ Criar Usuário</button>
+    </div>
+    <div id="usuarioFormPanel" class="hidden" style="background:#f8fafc;border:1px solid #dbe3ef;border-radius:10px;padding:16px;margin-bottom:16px">
+      <h4 id="usuarioFormTitle" style="margin-top:0">Novo Usuário</h4>
+      <form id="usuarioForm">
+        <input type="hidden" id="usuarioIndex">
+        <div class="form-grid">
+          <div class="form-group"><label>Nome *</label><input id="usuarioNome" required></div>
+          <div class="form-group"><label>Usuário / Login *</label><input id="usuarioLogin" required autocomplete="off"></div>
+          <div class="form-group"><label>Senha *</label><input type="password" id="usuarioSenha" autocomplete="new-password"><small style="color:#64748b">Na edição, deixe em branco para manter a senha atual.</small></div>
+          <div class="form-group"><label>Perfil</label><select id="usuarioPerfil"><option value="Administrador">Administrador</option><option value="Vendedor">Vendedor</option><option value="Técnico">Técnico</option></select></div>
+          <div class="form-group"><label>Status</label><select id="usuarioStatus"><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option></select></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Salvar Usuário</button><button class="btn btn-secondary" type="button" onclick="fecharUsuarioForm()">Cancelar</button></div>
+      </form>
+    </div>
+    <div class="table-container"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead><tbody id="usuariosTabela"></tbody></table></div>
   </div>
 
   <div class="panel">
@@ -4199,32 +4248,54 @@ document.addEventListener("DOMContentLoaded", function(){
   document.getElementById("produtoMargemMinima").addEventListener("input", calcularPrecosProduto);
   document.getElementById("produtoMargemIdeal").addEventListener("input", calcularPrecosProduto);
 
-  const vendaProdutoCampo = document.getElementById("vendaProduto");
-  if(vendaProdutoCampo){
-    vendaProdutoCampo.addEventListener("change", function(){
-      document.getElementById("vendaPreco").value = "";
-      atualizarVendaProduto();
-    });
-  }
+  document.getElementById("vendaProduto").addEventListener("change", function(){
+    document.getElementById("vendaPreco").value = "";
+    atualizarVendaProduto();
+        const impressoraForm =
+        document.getElementById("impressoraForm");
 
-  /* CONTROLE DE IMPRESSORAS */
-  const impressoraForm = document.getElementById("impressoraForm");
-  if(impressoraForm){
-    impressoraForm.addEventListener("submit", salvarImpressora);
-  }
+    if(impressoraForm){
 
-  const impressoraBusca = document.getElementById("impressoraBusca");
-  if(impressoraBusca){
-    impressoraBusca.addEventListener("input", renderImpressoras);
-  }
+        impressoraForm.addEventListener(
+            "submit",
+            salvarImpressora
+        );
 
-  const impressoraFiltro = document.getElementById("impressoraFiltroStatus");
-  if(impressoraFiltro){
-    impressoraFiltro.addEventListener("change", renderImpressoras);
-  }
+    }
 
-  renderImpressoras();
-  atualizarResumoImpressoras();
+
+    const impressoraBusca =
+        document.getElementById("impressoraBusca");
+
+    if(impressoraBusca){
+
+        impressoraBusca.addEventListener(
+            "input",
+            renderImpressoras
+        );
+
+    }
+
+
+    const impressoraFiltro =
+        document.getElementById(
+            "impressoraFiltroStatus"
+        );
+
+    if(impressoraFiltro){
+
+        impressoraFiltro.addEventListener(
+            "change",
+            renderImpressoras
+        );
+
+    }
+
+
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+  });
 
   [
     "vendaQuantidade",
@@ -4247,6 +4318,91 @@ document.addEventListener("DOMContentLoaded", function(){
   renderFinanceiro();
   renderRelatorios();
   carregarConfiguracoesForm();
+});
+
+
+/* =========================================================
+   USUÁRIOS / ACESSO LOCAL
+   ========================================================= */
+const STORAGE_USUARIOS = "baire_usuarios";
+const STORAGE_SESSAO = "baire_sessao";
+let usuarios = [];
+
+function hashSenha(texto){
+  let hash=0;
+  for(let i=0;i<texto.length;i++){hash=((hash<<5)-hash)+texto.charCodeAt(i);hash|=0;}
+  return String(hash);
+}
+function carregarUsuarios(){
+  try{usuarios=JSON.parse(localStorage.getItem(STORAGE_USUARIOS)||"[]");}catch(e){usuarios=[];}
+  if(!usuarios.length){
+    usuarios=[{id:Date.now(),nome:"Administrador",login:"admin",senha:hashSenha("admin123"),perfil:"Administrador",status:"Ativo"}];
+    salvarUsuarios();
+  }
+}
+function salvarUsuarios(){localStorage.setItem(STORAGE_USUARIOS,JSON.stringify(usuarios));}
+function sessaoAtual(){try{return JSON.parse(localStorage.getItem(STORAGE_SESSAO)||"null");}catch(e){return null;}}
+function atualizarBarraUsuario(){
+  const el=document.getElementById("userBar"); const u=sessaoAtual(); if(!el)return;
+  if(u){el.innerHTML='<div class="user-avatar">'+escapeHtml((u.nome||"U").charAt(0).toUpperCase())+'</div><span><strong>'+escapeHtml(u.nome)+'</strong> · '+escapeHtml(u.perfil)+'</span><button class="btn btn-secondary btn-small" onclick="sairSistema()">Sair</button>';}
+}
+function escapeHtml(v){return String(v??"").replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function exibirErroLogin(msg){const el=document.getElementById("loginErro");if(el){el.textContent=msg;el.classList.remove("hidden");}}
+function entrarSistema(login,senha){
+  const u=usuarios.find(x=>String(x.login).toLowerCase()===String(login).trim().toLowerCase() && x.senha===hashSenha(senha) && x.status!=="Inativo");
+  if(!u){exibirErroLogin("Usuário ou senha inválidos, ou usuário inativo.");return false;}
+  localStorage.setItem(STORAGE_SESSAO,JSON.stringify({id:u.id,nome:u.nome,login:u.login,perfil:u.perfil}));
+  document.getElementById("loginOverlay").classList.add("hidden");
+  atualizarBarraUsuario();
+  aplicarPermissoes();
+  return true;
+}
+function sairSistema(){localStorage.removeItem(STORAGE_SESSAO);location.reload();}
+function novoUsuario(){
+  if(!ehAdministrador()){alert("Somente um Administrador pode criar usuários.");return;}
+  document.getElementById("usuarioForm").reset();document.getElementById("usuarioIndex").value="";document.getElementById("usuarioStatus").value="Ativo";document.getElementById("usuarioFormTitle").textContent="Novo Usuário";document.getElementById("usuarioFormPanel").classList.remove("hidden");
+}
+function fecharUsuarioForm(){document.getElementById("usuarioFormPanel")?.classList.add("hidden");}
+function salvarUsuario(event){
+  event.preventDefault(); if(!ehAdministrador()){alert("Somente um Administrador pode alterar usuários.");return;}
+  const idx=document.getElementById("usuarioIndex").value; const nome=document.getElementById("usuarioNome").value.trim(); const login=document.getElementById("usuarioLogin").value.trim(); const senha=document.getElementById("usuarioSenha").value;
+  if(!nome||!login){alert("Preencha nome e usuário.");return;}
+  const repetido=usuarios.some((u,i)=>i!==Number(idx||-1)&&u.login.toLowerCase()===login.toLowerCase()); if(repetido){alert("Este usuário/login já existe.");return;}
+  if(idx==="" && !senha){alert("Informe uma senha para o novo usuário.");return;}
+  const base={nome,login,perfil:document.getElementById("usuarioPerfil").value,status:document.getElementById("usuarioStatus").value};
+  if(idx===""){base.id=Date.now();base.senha=hashSenha(senha);usuarios.push(base);}else{base.id=usuarios[Number(idx)].id;base.senha=senha?hashSenha(senha):usuarios[Number(idx)].senha;usuarios[Number(idx)]=base;}
+  salvarUsuarios();fecharUsuarioForm();renderUsuarios();alert("Usuário salvo com sucesso.");
+}
+function editarUsuario(index){
+  if(!ehAdministrador()){alert("Somente um Administrador pode editar usuários.");return;} const u=usuarios[index];if(!u)return;
+  document.getElementById("usuarioIndex").value=index;document.getElementById("usuarioNome").value=u.nome;document.getElementById("usuarioLogin").value=u.login;document.getElementById("usuarioSenha").value="";document.getElementById("usuarioPerfil").value=u.perfil;document.getElementById("usuarioStatus").value=u.status;document.getElementById("usuarioFormTitle").textContent="Editar Usuário";document.getElementById("usuarioFormPanel").classList.remove("hidden");
+}
+function excluirUsuario(index){
+  if(!ehAdministrador()){alert("Somente um Administrador pode excluir usuários.");return;} const u=usuarios[index];if(!u)return;
+  const sess=sessaoAtual(); if(sess&&String(sess.id)===String(u.id)){alert("Você não pode excluir o usuário que está usando agora.");return;}
+  if(usuarios.filter(x=>x.status!=="Inativo").length<=1 && u.status!=="Inativo"){alert("Mantenha pelo menos um Administrador ativo no sistema.");return;}
+  if(confirm("Excluir o usuário "+u.nome+"?")){usuarios.splice(index,1);salvarUsuarios();renderUsuarios();}
+}
+function renderUsuarios(){
+  const t=document.getElementById("usuariosTabela");if(!t)return; if(!ehAdministrador()){t.innerHTML='<tr><td colspan="5" class="empty">Apenas Administradores podem gerenciar usuários.</td></tr>';return;}
+  if(!usuarios.length){t.innerHTML='<tr><td colspan="5" class="empty">Nenhum usuário cadastrado.</td></tr>';return;}
+  t.innerHTML=usuarios.map((u,i)=>'<tr><td><strong>'+escapeHtml(u.nome)+'</strong></td><td>'+escapeHtml(u.login)+'</td><td><span class="badge badge-blue">'+escapeHtml(u.perfil)+'</span></td><td><span class="badge '+(u.status==='Ativo'?'badge-green':'badge-red')+'">'+escapeHtml(u.status)+'</span></td><td><button class="btn btn-secondary btn-small" onclick="editarUsuario('+i+')">Editar</button> <button class="btn btn-danger btn-small" onclick="excluirUsuario('+i+')">Excluir</button></td></tr>').join('');
+}
+function ehAdministrador(){const s=sessaoAtual();return !!s&&s.perfil==="Administrador";}
+function aplicarPermissoes(){renderUsuarios();}
+function protegerAcesso(){
+  carregarUsuarios(); const s=sessaoAtual(); const overlay=document.getElementById("loginOverlay");
+  if(s && usuarios.some(u=>String(u.id)===String(s.id)&&u.status!=="Inativo")){overlay?.classList.add("hidden");atualizarBarraUsuario();aplicarPermissoes();}
+  else{localStorage.removeItem(STORAGE_SESSAO);overlay?.classList.remove("hidden");}
+}
+
+
+document.addEventListener("DOMContentLoaded",function(){
+  protegerAcesso();
+  const lf=document.getElementById("loginForm");
+  if(lf)lf.addEventListener("submit",function(e){e.preventDefault();entrarSistema(document.getElementById("loginUsuario").value,document.getElementById("loginSenha").value);});
+  const uf=document.getElementById("usuarioForm");
+  if(uf)uf.addEventListener("submit",salvarUsuario);
 });
 
 /* =========================================================
@@ -4307,6 +4463,8 @@ window.salvarConfiguracoes = salvarConfiguracoes;
 window.exportarBackup = exportarBackup;
 window.confirmarLimpeza = confirmarLimpeza;
 window.novoCadastroSimples = novoCadastroSimples;
+window.novoUsuario=novoUsuario;window.fecharUsuarioForm=fecharUsuarioForm;window.editarUsuario=editarUsuario;window.excluirUsuario=excluirUsuario;window.sairSistema=sairSistema;
+
 </script>
 
 </body>
