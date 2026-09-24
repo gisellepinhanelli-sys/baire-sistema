@@ -2918,109 +2918,191 @@ function inicializarSistema(){
    ========================================================= */
 
 const USUARIOS_STORAGE = "baire_usuarios";
+const SESSAO_STORAGE = "baire_usuario_logado";
 
-let usuarios = lerJSON(USUARIOS_STORAGE, [
-  {
-    id: 1,
-    nome: "Administrador",
-    login: "admin",
-    senha: "1234",
-    perfil: "Administrador",
-    status: "Ativo"
+function carregarUsuarios(){
+
+  usuarios = lerJSON(USUARIOS_STORAGE, []);
+
+  /*
+   Se não existir nenhum usuário, cria o administrador padrão.
+   Login: admin
+   Senha: 1234
+  */
+
+  if(!usuarios.length){
+
+    usuarios = [{
+      id: 1,
+      nome: "Administrador",
+      login: "admin",
+      senha: "1234",
+      perfil: "Administrador",
+      status: "Ativo"
+    }];
+
+    salvarUsuarios();
   }
-]);
+}
 
 function salvarUsuarios(){
   salvarJSON(USUARIOS_STORAGE, usuarios);
 }
 
-function atualizarUsuarioBar(usuario){
-  const bar = document.getElementById("userBar");
-  if(!bar) return;
+function obterUsuarioLogado(){
 
-  if(!usuario){
-    bar.innerHTML = "";
-    return;
-  }
+  return lerJSON(SESSAO_STORAGE, null);
 
-  bar.innerHTML = `
-    <div class="user-avatar">
-      ${escapeHTML((usuario.nome || "U").charAt(0).toUpperCase())}
-    </div>
-    <span>Olá, <strong>${escapeHTML(usuario.nome)}</strong></span>
-    <button class="btn btn-secondary btn-small" onclick="sairSistema()">Sair</button>
-  `;
 }
 
 function entrarSistema(usuario){
-  sessionStorage.setItem("baire_usuario_logado", JSON.stringify(usuario));
 
-  document.getElementById("loginOverlay").classList.add("hidden");
+  salvarJSON(SESSAO_STORAGE, {
+    id: usuario.id,
+    nome: usuario.nome,
+    login: usuario.login,
+    perfil: usuario.perfil
+  });
+
+  const overlay = document.getElementById("loginOverlay");
+
+  if(overlay){
+    overlay.classList.add("hidden");
+  }
 
   atualizarUsuarioBar(usuario);
   atualizarDashboard();
 }
 
 function sairSistema(){
-  sessionStorage.removeItem("baire_usuario_logado");
 
-  document.getElementById("loginOverlay").classList.remove("hidden");
+  localStorage.removeItem(SESSAO_STORAGE);
 
-  document.getElementById("loginUsuario").value = "";
-  document.getElementById("loginSenha").value = "";
-  document.getElementById("loginUsuario").focus();
+  const overlay = document.getElementById("loginOverlay");
+
+  if(overlay){
+    overlay.classList.remove("hidden");
+  }
+
+  const login = document.getElementById("loginUsuario");
+  const senha = document.getElementById("loginSenha");
+  const erro = document.getElementById("loginErro");
+
+  if(login) login.value = "";
+  if(senha) senha.value = "";
+
+  if(erro){
+    erro.classList.add("hidden");
+    erro.textContent = "";
+  }
 
   atualizarUsuarioBar(null);
 }
 
 function verificarLogin(){
-  const usuarioLogado = lerJSON("baire_usuario_logado", null);
+
+  carregarUsuarios();
+
+  const usuarioLogado = obterUsuarioLogado();
 
   if(usuarioLogado){
-    entrarSistema(usuarioLogado);
-    return;
+
+    const usuario = usuarios.find(function(u){
+
+      return String(u.id) === String(usuarioLogado.id) &&
+             u.status === "Ativo";
+
+    });
+
+    if(usuario){
+
+      entrarSistema(usuario);
+      return;
+
+    }
+
+    localStorage.removeItem(SESSAO_STORAGE);
   }
 
   const loginForm = document.getElementById("loginForm");
 
-  if(loginForm){
-    loginForm.addEventListener("submit", function(event){
-      event.preventDefault();
+  if(!loginForm) return;
 
-      const login = document.getElementById("loginUsuario").value.trim();
-      const senha = document.getElementById("loginSenha").value;
+  loginForm.addEventListener("submit", function(event){
 
-      const usuario = usuarios.find(function(u){
-        return (
-          u.login === login &&
-          u.senha === senha &&
-          u.status === "Ativo"
-        );
-      });
+    event.preventDefault();
 
-      const erro = document.getElementById("loginErro");
+    const login = document
+      .getElementById("loginUsuario")
+      .value
+      .trim();
 
-      if(!usuario){
+    const senha = document
+      .getElementById("loginSenha")
+      .value;
+
+    const usuario = usuarios.find(function(u){
+
+      return String(u.login).trim().toLowerCase() ===
+             login.toLowerCase() &&
+             String(u.senha) === String(senha) &&
+             u.status === "Ativo";
+
+    });
+
+    const erro = document.getElementById("loginErro");
+
+    if(!usuario){
+
+      if(erro){
+
         erro.textContent = "Usuário ou senha inválidos.";
         erro.classList.remove("hidden");
-        return;
+
       }
 
+      return;
+    }
+
+    if(erro){
       erro.classList.add("hidden");
+    }
 
-      sessionStorage.setItem(
-        "baire_usuario_logado",
-        JSON.stringify(usuario)
-      );
+    entrarSistema(usuario);
 
-      document.getElementById("loginOverlay").classList.add("hidden");
-
-      atualizarUsuarioBar(usuario);
-      atualizarDashboard();
-    });
-  }
+  });
 }
 
+function atualizarUsuarioBar(usuario){
+
+  const bar = document.getElementById("userBar");
+
+  if(!bar) return;
+
+  if(!usuario){
+
+    bar.innerHTML = "";
+    return;
+
+  }
+
+  bar.innerHTML = `
+    <div class="user-avatar">
+      ${escapeHTML((usuario.nome || "U").charAt(0).toUpperCase())}
+    </div>
+
+    <span>
+      Olá, <strong>${escapeHTML(usuario.nome)}</strong>
+    </span>
+
+    <button
+      class="btn btn-secondary btn-small"
+      type="button"
+      onclick="sairSistema()">
+      Sair
+    </button>
+  `;
+}
 
 /* =========================================================
    USUÁRIOS
