@@ -1590,6 +1590,7 @@ const STORAGE = {
   orcamentos: "baire_orcamentos",
   locacoes: "baire_locacoes",
   contas: "baire_contas",
+  usuarios: "baire_usuarios",
   configuracoes: "baire_configuracoes"
 };
 
@@ -1601,6 +1602,7 @@ let orcamentos = [];
 let locacoes = [];
 let contas = [];
 let configuracoes = {
+let usuarios = [];
   margemMinima: 40,
   margemIdeal: 100,
   motoboy: 10,
@@ -1615,7 +1617,22 @@ function carregarDados(){
   orcamentos = lerJSON(STORAGE.orcamentos, []);
   locacoes = lerJSON(STORAGE.locacoes, []);
   contas = lerJSON(STORAGE.contas, []);
+usuarios = lerJSON(STORAGE.usuarios, []);
+  if(!usuarios.length){
+  usuarios = [{
+    id: Date.now(),
+    nome: "Administrador",
+    login: "admin",
+    senha: "1234",
+    perfil: "Administrador",
+    status: "Ativo"
+  }];
 
+  salvarUsuarios();
+}
+  function salvarUsuarios(){
+  salvarJSON(STORAGE.usuarios, usuarios);
+}
   const cfg = lerJSON(STORAGE.configuracoes, null);
   if(cfg){
     configuracoes = Object.assign(configuracoes, cfg);
