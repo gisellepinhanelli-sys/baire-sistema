@@ -2828,6 +2828,47 @@ function abrirImpressao(conteudo){
         hr{border:0;border-top:1px solid #ccc;margin:20px 0}
       </style>
     </head>
+    <!-- =========================================================
+     BAIRE ONLINE - CONEXÃO COM SUPABASE
+     ========================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    // CONFIGURAÇÃO DO BAIRE ONLINE
+    const BAIRE_SUPABASE_URL =
+        "https://ybjjbcivrkwouavdyceh.supabase.co";
+
+    const BAIRE_SUPABASE_KEY =
+        "COLE_AQUI_SUA_PUBLISHABLE_KEY";
+
+    const baireSupabase =
+        window.supabase.createClient(
+            BAIRE_SUPABASE_URL,
+            BAIRE_SUPABASE_KEY
+        );
+
+    console.log("BAIRE: conexão com Supabase carregada.");
+
+    // Verifica se existe usuário conectado
+    async function verificarLoginBaire() {
+        const {
+            data: { session },
+            error
+        } = await baireSupabase.auth.getSession();
+
+        if (error) {
+            console.error("Erro ao verificar login:", error);
+            return null;
+        }
+
+        return session;
+    }
+
+    // Disponibiliza a conexão para o restante do sistema
+    window.baireSupabase = baireSupabase;
+    window.verificarLoginBaire = verificarLoginBaire;
+</script>
     <body>${conteudo}</body>
     </html>
   `);
