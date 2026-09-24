@@ -2828,20 +2828,7 @@ function abrirImpressao(conteudo){
         hr{border:0;border-top:1px solid #ccc;margin:20px 0}
       </style>
     </head>
-   <!-- BAIRE ONLINE - SUPABASE -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const BAIRE_SUPABASE_URL = "https://ybjjbcivrkwouavdyceh.supabase.co";
-
-const BAIRE_SUPABASE_KEY = "sb_publishable_";
-
-const baireSupabase = window.supabase.createClient(
-    BAIRE_SUPABASE_URL,
-    BAIRE_SUPABASE_KEY
-);
-
+   
 window.baireSupabase = baireSupabase;
 
 console.log("BAIRE: conexão com Supabase carregada.");
