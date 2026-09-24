@@ -2835,6 +2835,19 @@ function abrirImpressao(conteudo){
 <script>
 const BAIRE_SUPABASE_URL = "https://ybjjbcivrkwouavdyceh.supabase.co";
 
+const BAIRE_SUPABASE_KEY = "sb_publishable_";
+
+const baireSupabase = window.supabase.createClient(
+    BAIRE_SUPABASE_URL,
+    BAIRE_SUPABASE_KEY
+);
+
+window.baireSupabase = baireSupabase;
+
+console.log("BAIRE: conexão com Supabase carregada.");
+</script>
+const BAIRE_SUPABASE_URL = "https://ybjjbcivrkwouavdyceh.supabase.co";
+
 const BAIRE_SUPABASE_KEY = "const BAIRE_SUPABASE_KEY = "sb_publishable_...";";
 
 const baireSupabase = window.supabase.createClient(
