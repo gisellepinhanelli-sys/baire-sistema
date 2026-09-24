@@ -1549,7 +1549,7 @@ tr:hover td{background:#f8fafc}
     </div>
     <div id="usuarioFormPanel" class="hidden" style="background:#f8fafc;border:1px solid #dbe3ef;border-radius:10px;padding:16px;margin-bottom:16px">
       <h4 id="usuarioFormTitle" style="margin-top:0">Novo Usuário</h4>
-      <form id="usuarioForm">
+    <form id="usuarioForm" onsubmit="salvarUsuario(event)">
         <input type="hidden" id="usuarioIndex">
         <div class="form-grid">
           <div class="form-group"><label>Nome *</label><input id="usuarioNome" required></div>
