@@ -1619,20 +1619,30 @@ function carregarDados(){
   orcamentos = lerJSON(STORAGE.orcamentos, []);
   locacoes = lerJSON(STORAGE.locacoes, []);
   contas = lerJSON(STORAGE.contas, []);
-usuarios = lerJSON(STORAGE.usuarios, []);
-  if(!usuarios.length){
-  usuarios = [{
-    id: Date.now(),
-    nome: "Administrador",
-    login: "admin",
-    senha: "1234",
-    perfil: "Administrador",
-    status: "Ativo"
-  }];
 
-  salvarUsuarios();
+  usuarios = lerJSON(STORAGE.usuarios, []);
+
+  if(!usuarios.length){
+    usuarios = [{
+      id: Date.now(),
+      nome: "Administrador",
+      login: "admin",
+      senha: "1234",
+      perfil: "Administrador",
+      status: "Ativo"
+    }];
+
+    salvarUsuarios();
+  }
+
+  const cfg = lerJSON(STORAGE.configuracoes, null);
+
+  if(cfg){
+    configuracoes = Object.assign(configuracoes, cfg);
+  }
 }
-  function salvarUsuarios(){
+
+function salvarUsuarios(){
   salvarJSON(STORAGE.usuarios, usuarios);
 }
   const cfg = lerJSON(STORAGE.configuracoes, null);
