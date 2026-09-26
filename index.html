@@ -3012,7 +3012,36 @@ function sairSistema(){
   atualizarUsuarioBar(null);
 }
 
+function atualizarUsuarioBar(usuario){
 
+  const bar = document.getElementById("userBar");
+
+  if(!bar) return;
+
+  if(!usuario){
+
+    bar.innerHTML = "";
+    return;
+
+  }
+
+  bar.innerHTML = `
+    <div class="user-avatar">
+      ${escapeHTML((usuario.nome || "U").charAt(0).toUpperCase())}
+    </div>
+
+    <span>
+      Olá, <strong>${escapeHTML(usuario.nome)}</strong>
+    </span>
+
+    <button
+      class="btn btn-secondary btn-small"
+      type="button"
+      onclick="sairSistema()">
+      Sair
+    </button>
+  `;
+}
  
 
 /* =========================================================
