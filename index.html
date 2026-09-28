@@ -260,456 +260,31 @@ tr:hover td{background:#f8fafc}
 }
 
 /* =========================================================
-   LOGIN BAIRE - VERSÃO CORRIGIDA
-   Usuário único
-   Login: admin
-   Senha: 1234
+   ACESSO / USUÁRIOS - CONTROLE LOCAL
    ========================================================= */
-
-const BAIRE_LOGIN_STORAGE = "baire_login_usuario";
-const BAIRE_SESSAO_STORAGE = "baire_sessao";
-
-let usuarioBaire = {
-  id: 1,
-  nome: "Administrador",
-  login: "admin",
-  senha: "1234",
-  perfil: "Administrador",
-  status: "Ativo"
-};
-
-function carregarLoginBaire(){
-
-  try{
-
-    const salvo = localStorage.getItem(BAIRE_LOGIN_STORAGE);
-
-    if(salvo){
-
-      const dados = JSON.parse(salvo);
-
-      if(
-        dados &&
-        dados.login &&
-        dados.senha
-      ){
-
-        usuarioBaire = {
-          id: dados.id || 1,
-          nome: dados.nome || "Administrador",
-          login: dados.login,
-          senha: dados.senha,
-          perfil: dados.perfil || "Administrador",
-          status: dados.status || "Ativo"
-        };
-
-      }
-
-    }
-
-  }catch(e){
-
-    console.error(
-      "Erro ao carregar usuário BAIRE:",
-      e
-    );
-
-  }
-
-  salvarLoginBaire();
-}
-
-
-function salvarLoginBaire(){
-
-  try{
-
-    localStorage.setItem(
-      BAIRE_LOGIN_STORAGE,
-      JSON.stringify(usuarioBaire)
-    );
-
-  }catch(e){
-
-    console.error(
-      "Erro ao salvar usuário BAIRE:",
-      e
-    );
-
-  }
-
-}
-
-
-function obterSessaoBaire(){
-
-  try{
-
-    return JSON.parse(
-      localStorage.getItem(
-        BAIRE_SESSAO_STORAGE
-      ) || "null"
-    );
-
-  }catch(e){
-
-    return null;
-
-  }
-
-}
-
-
-function salvarSessaoBaire(){
-
-  localStorage.setItem(
-    BAIRE_SESSAO_STORAGE,
-    JSON.stringify({
-      id: usuarioBaire.id,
-      nome: usuarioBaire.nome,
-      login: usuarioBaire.login,
-      perfil: usuarioBaire.perfil
-    })
-  );
-
-}
-
-
-function atualizarBarraUsuarioBaire(){
-
-  const bar =
-    document.getElementById("userBar");
-
-  if(!bar) return;
-
-  const sessao =
-    obterSessaoBaire();
-
-  if(!sessao){
-
-    bar.innerHTML = "";
-
-    return;
-
-  }
-
-  const nome =
-    sessao.nome || "Administrador";
-
-  bar.innerHTML = `
-    <div class="user-avatar">
-      ${String(nome).charAt(0).toUpperCase()}
-    </div>
-
-    <span>
-      Olá,
-      <strong>${escapeHTML(nome)}</strong>
-    </span>
-
-    <button
-      class="btn btn-secondary btn-small"
-      type="button"
-      onclick="sairSistemaBaire()">
-      Sair
-    </button>
-  `;
-
-}
-
-
-function mostrarErroLoginBaire(mensagem){
-
-  const erro =
-    document.getElementById("loginErro");
-
-  if(!erro) return;
-
-  erro.textContent =
-    mensagem;
-
-  erro.classList.remove(
-    "hidden"
-  );
-
-}
-
-
-function limparErroLoginBaire(){
-
-  const erro =
-    document.getElementById("loginErro");
-
-  if(!erro) return;
-
-  erro.textContent = "";
-
-  erro.classList.add(
-    "hidden"
-  );
-
-}
-
-
-function entrarSistemaBaire(){
-
-  const loginEl =
-    document.getElementById(
-      "loginUsuario"
-    );
-
-  const senhaEl =
-    document.getElementById(
-      "loginSenha"
-    );
-
-  if(!loginEl || !senhaEl){
-
-    console.error(
-      "Campos de login não encontrados."
-    );
-
-    return false;
-
-  }
-
-  const login =
-    loginEl.value
-      .trim()
-      .toLowerCase();
-
-  const senha =
-    senhaEl.value;
-
-  limparErroLoginBaire();
-
-  if(
-    login !==
-    String(
-      usuarioBaire.login
-    )
-      .trim()
-      .toLowerCase()
-  ){
-
-    mostrarErroLoginBaire(
-      "Usuário ou senha inválidos."
-    );
-
-    return false;
-
-  }
-
-  if(
-    senha !==
-    String(
-      usuarioBaire.senha
-    )
-  ){
-
-    mostrarErroLoginBaire(
-      "Usuário ou senha inválidos."
-    );
-
-    return false;
-
-  }
-
-  if(
-    usuarioBaire.status !==
-    "Ativo"
-  ){
-
-    mostrarErroLoginBaire(
-      "O usuário está inativo."
-    );
-
-    return false;
-
-  }
-
-  salvarSessaoBaire();
-
-  const overlay =
-    document.getElementById(
-      "loginOverlay"
-    );
-
-  if(overlay){
-
-    overlay.classList.add(
-      "hidden"
-    );
-
-  }
-
-  atualizarBarraUsuarioBaire();
-
-  if(
-    typeof atualizarDashboard ===
-    "function"
-  ){
-
-    atualizarDashboard();
-
-  }
-
-  return true;
-
-}
-
-
-function sairSistemaBaire(){
-
-  localStorage.removeItem(
-    BAIRE_SESSAO_STORAGE
-  );
-
-  location.reload();
-
-}
-
-
-function verificarLoginBaire(){
-
-  carregarLoginBaire();
-
-  const sessao =
-    obterSessaoBaire();
-
-  if(sessao){
-
-    if(
-      String(sessao.id) ===
-        String(usuarioBaire.id) &&
-      usuarioBaire.status ===
-        "Ativo"
-    ){
-
-      const overlay =
-        document.getElementById(
-          "loginOverlay"
-        );
-
-      if(overlay){
-
-        overlay.classList.add(
-          "hidden"
-        );
-
-      }
-
-      atualizarBarraUsuarioBaire();
-
-      return;
-
-    }
-
-    localStorage.removeItem(
-      BAIRE_SESSAO_STORAGE
-    );
-
-  }
-
-  const form =
-    document.getElementById(
-      "loginForm"
-    );
-
-  if(!form) return;
-
-  form.onsubmit =
-    function(event){
-
-      event.preventDefault();
-
-      entrarSistemaBaire();
-
-    };
-
-}
-
-
-function atualizarUsuarioBar(){
-
-  atualizarBarraUsuarioBaire();
-
-}
-
-
-/* =========================================================
-   USUÁRIO ÚNICO
-   ========================================================= */
-
-function novoUsuario(){
-
-  alert(
-    "O sistema BAIRE está configurado para utilizar apenas o usuário Administrador."
-  );
-
-}
-
-
-function editarUsuario(){
-
-  alert(
-    "O usuário administrador está configurado para acesso único."
-  );
-
-}
-
-
-function excluirUsuario(){
-
-  alert(
-    "O usuário administrador não pode ser excluído."
-  );
-
-}
-
-
-function renderUsuarios(){
-
-  const tabela =
-    document.getElementById(
-      "usuariosTabela"
-    );
-
-  if(!tabela) return;
-
-  tabela.innerHTML = `
-    <tr>
-
-      <td>
-        Administrador
-      </td>
-
-      <td>
-        admin
-      </td>
-
-      <td>
-        Administrador
-      </td>
-
-      <td>
-        <span class="badge badge-green">
-          Ativo
-        </span>
-      </td>
-
-      <td>
-        <button
-          class="btn btn-small btn-primary"
-          type="button"
-          onclick="editarUsuario()">
-          Editar
-        </button>
-      </td>
-
-    </tr>
-  `;
-
-}
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#174ea6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99999}
+.login-box{width:min(430px,100%);background:#fff;border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{text-align:center;margin-bottom:24px}.login-logo h1{margin:0;color:#174ea6;font-size:34px;letter-spacing:2px}.login-logo p{margin:6px 0 0;color:#64748b}
+.login-error{background:#fef2f2;color:#991b1b;padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:13px}
+.user-bar{display:flex;align-items:center;gap:10px;margin-left:auto;color:#475569;font-size:13px}.user-avatar{width:32px;height:32px;border-radius:50%;background:#dbeafe;color:#1e40af;display:flex;align-items:center;justify-content:center;font-weight:800}
+@media(max-width:700px){.user-bar{margin-left:0}}
+
+</style>
+</head>
+<body>
+
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-box">
+    <div class="login-logo"><h1>BAIRE</h1><p>Sistema Empresarial</p></div>
+    <div id="loginErro" class="login-error hidden"></div>
+    <form id="loginForm">
+      <div class="form-group" style="margin-bottom:14px"><label>Usuário</label><input id="loginUsuario" autocomplete="username" required></div>
+      <div class="form-group" style="margin-bottom:18px"><label>Senha</label><input type="password" id="loginSenha" autocomplete="current-password" required></div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Entrar no sistema</button>
+    </form>
+    <p class="footer-note" style="text-align:center;margin-bottom:0">Acesso local do sistema BAIRE.</p>
+  </div>
+</div>
 
 
 <aside class="sidebar">
@@ -726,7 +301,6 @@ function renderUsuarios(){
     <button onclick="showScreen('impressoras')" id="menu-impressoras">🖨️ Impressoras</button>
     <button onclick="showScreen('catalogo-impressoras')" id="menu-catalogo-impressoras">📚 Catálogo de Impressoras</button>
     <button onclick="showScreen('vendas')" id="menu-vendas">💰 Vendas</button>
-    <button onclick="showScreen('prospeccao')" id="menu-prospeccao">🎯 Prospecção de Empresas</button>
     <button onclick="showScreen('assistencia')" id="menu-assistencia">🔧 Assistência Técnica</button>
     <button onclick="showScreen('orcamentos')" id="menu-orcamentos">📋 Orçamentos</button>
     <button onclick="showScreen('locacoes')" id="menu-locacoes">📑 Locações</button>
@@ -1656,10 +1230,7 @@ function renderUsuarios(){
 <section id="screen-vendas" class="screen">
   <div class="topbar">
     <h2>Vendas</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="showScreen('prospeccao')">🎯 Prospecção / Empresas</button>
-      <button class="btn btn-secondary" onclick="limparVenda()">Limpar venda</button>
-    </div>
+    <button class="btn btn-secondary" onclick="limparVenda()">Limpar venda</button>
   </div>
 
   <div class="panel">
@@ -1703,11 +1274,6 @@ function renderUsuarios(){
       <div class="form-group">
         <label>Preço ideal</label>
         <input type="number" id="vendaPrecoIdeal" readonly>
-      </div>
-
-      <div class="form-group">
-        <label>Vendedora responsável</label>
-        <input id="vendaVendedora" placeholder="Nome da vendedora">
       </div>
 
       <div class="form-group">
@@ -1796,7 +1362,6 @@ function renderUsuarios(){
             <th>Total</th>
             <th>Lucro</th>
             <th>Pagamento</th>
-            <th>Vendedora</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -1805,141 +1370,6 @@ function renderUsuarios(){
     </div>
   </div>
 </section>
-
-<section id="screen-prospeccao" class="screen">
-  <div class="topbar">
-    <div><h2>Prospecção de Empresas</h2><p style="margin:5px 0 0;color:#64748b">Cadastro comercial, acompanhamento e histórico de contatos.</p></div>
-    <button class="btn btn-primary" onclick="novaProspeccao()">+ Nova Empresa</button>
-  </div>
-
-  <div id="prospeccaoFormPanel" class="panel hidden">
-    <h3 id="prospeccaoFormTitle">Nova empresa em prospecção</h3>
-    <form id="prospeccaoForm">
-      <input type="hidden" id="prospeccaoIndex">
-      <div class="form-grid">
-        <div class="form-group"><label>Nome da empresa *</label><input id="prospEmpresa" required></div>
-        <div class="form-group"><label>Nome da pessoa de contato</label><input id="prospContato"></div>
-        <div class="form-group"><label>Telefone</label><input id="prospTelefone"></div>
-        <div class="form-group"><label>WhatsApp</label><input id="prospWhatsapp"></div>
-        <div class="form-group"><label>E-mail</label><input type="email" id="prospEmail"></div>
-        <div class="form-group"><label>Endereço</label><input id="prospEndereco"></div>
-        <div class="form-group"><label>Modelo da impressora</label><input id="prospImpressora" placeholder="Ex.: HP M404"></div>
-        <div class="form-group"><label>Fornecedor atual</label><input id="prospFornecedor"></div>
-        <div class="form-group"><label>Valor que paga atualmente (R$)</label><input type="number" id="prospValorAtual" min="0" step="0.01"></div>
-        <div class="form-group"><label>Responsável pela prospecção</label><input id="prospVendedora"></div>
-        <div class="form-group"><label>Próximo contato</label><input type="date" id="prospProximoContato"></div>
-        <div class="form-group"><label>Status</label><select id="prospStatus"><option>Em prospecção</option><option>Contato realizado</option><option>Orçamento enviado</option><option>Negociação</option><option>Cliente convertido</option><option>Sem interesse</option><option>Sem retorno</option></select></div>
-        <div class="form-group full"><label>Observações</label><textarea id="prospObservacoes" placeholder="Necessidades, informações comerciais, oportunidades etc."></textarea></div>
-      </div>
-      <div class="form-actions"><button class="btn btn-primary" type="submit">Salvar Empresa</button><button class="btn btn-secondary" type="button" onclick="fecharProspeccaoForm()">Cancelar</button></div>
-    </form>
-  </div>
-
-  <div class="panel">
-    <div class="toolbar"><input class="search" id="prospeccaoBusca" placeholder="🔎 Empresa, contato, telefone, impressora, fornecedor..."><button class="btn btn-secondary" onclick="exportarProspeccoesCSV()">⬇️ Exportar CSV</button></div>
-    <div class="table-container"><table><thead><tr><th>Empresa</th><th>Contato</th><th>Telefone/WhatsApp</th><th>Impressora</th><th>Fornecedor atual</th><th>Valor atual</th><th>Status</th><th>Último contato</th><th>Ações</th></tr></thead><tbody id="prospeccoesTabela"></tbody></table></div>
-  </div>
-
-  <div id="historicoProspeccaoPanel" class="panel hidden">
-    <div class="topbar"><div><h3 id="historicoTitulo">Histórico de conversas</h3><p style="margin:4px 0 0;color:#64748b">Registre cada contato com data, pessoa e detalhes da conversa.</p></div><button class="btn btn-secondary" onclick="fecharHistoricoProspeccao()">Fechar</button></div>
-    <div class="form-grid">
-      <div class="form-group"><label>Data do contato *</label><input type="date" id="contatoData"></div>
-      <div class="form-group"><label>Pessoa com quem falou</label><input id="contatoPessoa"></div>
-      <div class="form-group"><label>Canal</label><select id="contatoCanal"><option>Telefone</option><option>WhatsApp</option><option>E-mail</option><option>Visita</option><option>Outro</option></select></div>
-      <div class="form-group"><label>Vendedora</label><input id="contatoVendedora"></div>
-      <div class="form-group full"><label>Histórico da conversa *</label><textarea id="contatoTexto" placeholder="O que foi conversado? Necessidade? Preço? Próximo passo?"></textarea></div>
-    </div>
-    <div class="form-actions"><button class="btn btn-primary" onclick="adicionarContatoProspeccao()">+ Registrar contato</button></div>
-    <div id="historicoLista" style="margin-top:18px"></div>
-  </div>
-</section>
-
-
-/* =========================================================
-   PROSPECÇÃO DE EMPRESAS
-   ========================================================= */
-function novaProspeccao(){
-  const f=document.getElementById("prospeccaoForm");
-  if(!f) return;
-  f.reset();
-  document.getElementById("prospeccaoIndex").value="";
-  document.getElementById("prospeccaoFormTitle").textContent="Nova empresa em prospecção";
-  document.getElementById("prospeccaoFormPanel").classList.remove("hidden");
-  document.getElementById("prospProximoContato").value=new Date().toISOString().slice(0,10);
-}
-function fecharProspeccaoForm(){document.getElementById("prospeccaoFormPanel")?.classList.add("hidden");}
-function salvarProspeccao(e){
-  e.preventDefault();
-  const idx=document.getElementById("prospeccaoIndex").value;
-  const empresa=document.getElementById("prospEmpresa").value.trim();
-  if(!empresa){alert("Informe o nome da empresa.");return;}
-  const obj={
-    id: idx==="" ? Date.now() : prospeccoes[Number(idx)].id,
-    empresa, contato:document.getElementById("prospContato").value.trim(),
-    telefone:document.getElementById("prospTelefone").value.trim(),
-    whatsapp:document.getElementById("prospWhatsapp").value.trim(),
-    email:document.getElementById("prospEmail").value.trim(),
-    endereco:document.getElementById("prospEndereco").value.trim(),
-    impressora:document.getElementById("prospImpressora").value.trim(),
-    fornecedor:document.getElementById("prospFornecedor").value.trim(),
-    valorAtual:numero(document.getElementById("prospValorAtual").value),
-    vendedora:document.getElementById("prospVendedora").value.trim(),
-    proximoContato:document.getElementById("prospProximoContato").value,
-    status:document.getElementById("prospStatus").value,
-    observacoes:document.getElementById("prospObservacoes").value.trim(),
-    historico: idx==="" ? [] : (prospeccoes[Number(idx)].historico||[]),
-    atualizadoEm:new Date().toISOString()
-  };
-  if(idx==="") prospeccoes.push(obj); else prospeccoes[Number(idx)]=obj;
-  salvarJSON(STORAGE.prospeccoes,prospeccoes);
-  fecharProspeccaoForm(); renderProspeccoes(); alert("Empresa salva com sucesso.");
-}
-function editarProspeccao(index){
-  const p=prospeccoes[index]; if(!p)return;
-  document.getElementById("prospeccaoIndex").value=index;
-  const map={prospEmpresa:p.empresa,prospContato:p.contato,prospTelefone:p.telefone,prospWhatsapp:p.whatsapp,prospEmail:p.email,prospEndereco:p.endereco,prospImpressora:p.impressora,prospFornecedor:p.fornecedor,prospValorAtual:p.valorAtual,prospVendedora:p.vendedora,prospProximoContato:p.proximoContato,prospStatus:p.status,prospObservacoes:p.observacoes};
-  Object.keys(map).forEach(id=>{const el=document.getElementById(id);if(el)el.value=map[id]??"";});
-  document.getElementById("prospeccaoFormTitle").textContent="Editar empresa em prospecção";
-  document.getElementById("prospeccaoFormPanel").classList.remove("hidden");
-}
-function excluirProspeccao(index){if(!confirm("Excluir esta empresa da prospecção?"))return;prospeccoes.splice(index,1);salvarJSON(STORAGE.prospeccoes,prospeccoes);renderProspeccoes();}
-function renderProspeccoes(){
-  const tbody=document.getElementById("prospeccoesTabela"); if(!tbody)return;
-  const busca=(document.getElementById("prospeccaoBusca")?.value||"").toLowerCase().trim();
-  const lista=prospeccoes.map((p,i)=>({p,i})).filter(x=>!busca||Object.values(x.p).join(" ").toLowerCase().includes(busca));
-  if(!lista.length){tbody.innerHTML='<tr><td colspan="9" class="empty">Nenhuma empresa encontrada.</td></tr>';return;}
-  tbody.innerHTML=lista.slice().reverse().map(x=>{const p=x.p,i=x.i;const hist=p.historico||[];const ultimo=hist.length?hist[hist.length-1].data:"";return `<tr><td><strong>${escapeHTML(p.empresa)}</strong><br><small>${escapeHTML(p.contato||"")}</small></td><td>${escapeHTML(p.contato||"")}</td><td>${escapeHTML(p.telefone||"")}<br>${escapeHTML(p.whatsapp||"")}</td><td>${escapeHTML(p.impressora||"")}</td><td>${escapeHTML(p.fornecedor||"")}</td><td>${dinheiro(p.valorAtual)}</td><td><span class="badge badge-blue">${escapeHTML(p.status||"")}</span></td><td>${dataBR(ultimo)}</td><td><button class="btn btn-small btn-primary" onclick="editarProspeccao(${i})">Editar</button> <button class="btn btn-small btn-success" onclick="abrirHistoricoProspeccao(${i})">Histórico</button> <button class="btn btn-small btn-danger" onclick="excluirProspeccao(${i})">Excluir</button></td></tr>`;}).join("");
-}
-function abrirHistoricoProspeccao(index){
-  const p=prospeccoes[index]; if(!p)return;
-  document.getElementById("historicoProspeccaoPanel").classList.remove("hidden");
-  document.getElementById("historicoProspeccaoPanel").dataset.index=index;
-  document.getElementById("historicoTitulo").textContent="Histórico de conversas — "+p.empresa;
-  document.getElementById("contatoData").value=new Date().toISOString().slice(0,10);
-  document.getElementById("contatoPessoa").value=p.contato||"";
-  document.getElementById("contatoVendedora").value=p.vendedora||"";
-  renderHistoricoProspeccao(index);
-  document.getElementById("historicoProspeccaoPanel").scrollIntoView({behavior:"smooth",block:"start"});
-}
-function fecharHistoricoProspeccao(){document.getElementById("historicoProspeccaoPanel")?.classList.add("hidden");}
-function adicionarContatoProspeccao(){
-  const panel=document.getElementById("historicoProspeccaoPanel");const index=Number(panel.dataset.index);const p=prospeccoes[index];if(!p)return;
-  const data=document.getElementById("contatoData").value;const texto=document.getElementById("contatoTexto").value.trim();
-  if(!data||!texto){alert("Informe a data e o histórico da conversa.");return;}
-  p.historico=p.historico||[];p.historico.push({data,pessoa:document.getElementById("contatoPessoa").value.trim(),canal:document.getElementById("contatoCanal").value,vendedora:document.getElementById("contatoVendedora").value.trim(),texto});p.atualizadoEm=new Date().toISOString();
-  salvarJSON(STORAGE.prospeccoes,prospeccoes);
-  document.getElementById("contatoTexto").value="";renderHistoricoProspeccao(index);renderProspeccoes();
-}
-function renderHistoricoProspeccao(index){
-  const box=document.getElementById("historicoLista");const p=prospeccoes[index];if(!box||!p)return;const h=(p.historico||[]).slice().reverse();
-  box.innerHTML=h.length?h.map((c,ri)=>`<div class="panel" style="margin-bottom:10px;background:#f8fafc"><div style="display:flex;justify-content:space-between;gap:10px"><strong>${dataBR(c.data)} — ${escapeHTML(c.pessoa||"Pessoa não informada")}</strong><span class="badge badge-orange">${escapeHTML(c.canal||"")}</span></div><p style="margin:8px 0"><strong>Vendedora:</strong> ${escapeHTML(c.vendedora||"")}</p><p style="margin:0;white-space:pre-wrap">${escapeHTML(c.texto)}</p></div>`).join(""):'<p style="color:#64748b">Nenhum contato registrado ainda.</p>';
-}
-function exportarProspeccoesCSV(){
-  const cab=['Empresa','Contato','Telefone','WhatsApp','Email','Endereco','Impressora','Fornecedor atual','Valor atual','Vendedora','Proximo contato','Status','Observacoes','Historico'];
-  const rows=prospeccoes.map(p=>[p.empresa,p.contato,p.telefone,p.whatsapp,p.email,p.endereco,p.impressora,p.fornecedor,p.valorAtual,p.vendedora,p.proximoContato,p.status,p.observacoes,(p.historico||[]).map(h=>`${h.data} | ${h.pessoa} | ${h.canal} | ${h.vendedora} | ${h.texto}`).join(' || ')]);
-  const csv=[cab,...rows].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n');
-  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='prospeccao-baire-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);
-}
 
 <section id="screen-assistencia" class="screen">
   <div class="topbar">
@@ -2235,8 +1665,7 @@ const STORAGE = {
   locacoes: "baire_locacoes",
   contas: "baire_contas",
   usuarios: "baire_usuarios",
-  configuracoes: "baire_configuracoes",
-  prospeccoes: "baire_prospeccoes"
+  configuracoes: "baire_configuracoes"
 };
 
 let clientes = [];
@@ -2247,7 +1676,6 @@ let orcamentos = [];
 let locacoes = [];
 let contas = [];
 let usuarios = [];
-let prospeccoes = [];
 
 let configuracoes = {
   margemMinima: 40,
@@ -2265,7 +1693,6 @@ function carregarDados(){
   locacoes = lerJSON(STORAGE.locacoes, []);
   contas = lerJSON(STORAGE.contas, []);
   usuarios = lerJSON(STORAGE.usuarios, []);
-  prospeccoes = lerJSON(STORAGE.prospeccoes, []);
 
   // Recuperação única do acesso: remove usuários/senhas antigos e cria administrador padrão.
   // Não apaga clientes, produtos, vendas ou demais dados do sistema.
@@ -2842,7 +2269,6 @@ function atualizarCalculoVenda(){
 }
 
 function limparVenda(){
-  const vend=document.getElementById("vendaVendedora"); if(vend) vend.value="";
   document.getElementById("vendaCliente").value = "";
   document.getElementById("vendaProduto").value = "";
   document.getElementById("vendaQuantidade").value = 1;
@@ -2925,7 +2351,6 @@ function salvarVenda(){
     custoBoleto: boleto,
     lucro: lucro,
     pagamento: document.getElementById("vendaPagamento").value,
-    vendedora: (document.getElementById("vendaVendedora")?.value || "").trim(),
     entrega: document.getElementById("vendaEntrega").value
   };
 
@@ -2958,7 +2383,7 @@ function renderVendas(){
   if(!tbody) return;
 
   if(vendas.length === 0){
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhuma venda registrada.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhuma venda registrada.</td></tr>';
     return;
   }
 
@@ -2973,7 +2398,6 @@ function renderVendas(){
         <td>${dinheiro(v.subtotal)}</td>
         <td class="${numero(v.lucro) >= 0 ? "metric-good" : "metric-bad"}">${dinheiro(v.lucro)}</td>
         <td>${escapeHTML(v.pagamento)}</td>
-        <td>${escapeHTML(v.vendedora || "")}</td>
         <td>
           <button class="btn btn-small btn-primary" onclick="imprimirVenda(${index})">Imprimir</button>
           <button class="btn btn-small btn-danger" onclick="excluirVenda(${index})">Excluir</button>
@@ -4772,7 +4196,6 @@ document.addEventListener("DOMContentLoaded", function(){
   carregarConfiguracoesForm();
   renderUsuarios();
   renderImpressoras();
-  renderProspeccoes();
   atualizarDashboard();
 
   document
@@ -4802,12 +4225,6 @@ document.addEventListener("DOMContentLoaded", function(){
   document
     .getElementById("usuarioForm")
     ?.addEventListener("submit", salvarUsuario);
-
-  document
-    .getElementById("prospeccaoForm")
-    ?.addEventListener("submit", salvarProspeccao);
-
-  document.getElementById("prospeccaoBusca")?.addEventListener("input", renderProspeccoes);
 
   const catalogoImpressoraBusca = document.getElementById("catalogoImpressoraBusca");
   if(catalogoImpressoraBusca){
@@ -4923,21 +4340,6 @@ document.addEventListener("DOMContentLoaded", function(){
       "change",
       renderImpressoras
     );
-  }
-
-document.addEventListener("DOMContentLoaded", function(){
-
-  try{
-
-    verificarLoginBaire();
-
-  }catch(e){
-
-    console.error(
-      "Erro no login BAIRE:",
-      e
-    );
-
   }
 
 });
