@@ -601,6 +601,23 @@ tr:hover td{background:#f8fafc}
       <h2>📚 Catálogo de Impressoras</h2>
       <p style="color:#64748b;margin-top:4px">Modelos cadastrados, toners compatíveis e rendimento informado no catálogo BAIRE.</p>
     </div>
+    <button class="btn btn-primary" type="button" onclick="abrirFormModeloImpressora()">+ Adicionar modelo</button>
+  </div>
+  <div id="catalogoImpressoraFormPanel" class="panel hidden">
+    <h3>Novo modelo de impressora</h3>
+    <form id="catalogoImpressoraForm" onsubmit="salvarModeloCatalogoImpressora(event)">
+      <div class="form-grid">
+        <div class="form-group"><label>Marca / fabricante *</label><input id="novoModeloImpMarca" placeholder="Ex.: HP, Epson, Canon" required></div>
+        <div class="form-group"><label>Modelo da impressora *</label><input id="novoModeloImpModelo" placeholder="Ex.: LaserJet M404" required></div>
+        <div class="form-group"><label>Toner compatível *</label><input id="novoModeloImpToner" placeholder="Ex.: CF258X / 58X" required></div>
+        <div class="form-group"><label>Rendimento aproximado</label><input id="novoModeloImpRendimento" placeholder="Ex.: 10 mil páginas"></div>
+      </div>
+      <p class="footer-note">O novo modelo será salvo neste navegador e ficará disponível nas próximas visitas neste mesmo dispositivo.</p>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">Salvar modelo</button>
+        <button type="button" class="btn btn-secondary" onclick="fecharFormModeloImpressora()">Cancelar</button>
+      </div>
+    </form>
   </div>
   <div class="panel">
     <div class="alert alert-info">
@@ -640,6 +657,25 @@ tr:hover td{background:#f8fafc}
       <h2>Catálogo de Toners e Custos</h2>
       <p style="color:#64748b;margin-top:4px">Lista importada da planilha Printer Up. Informe o custo do motoboy e da NF por unidade.</p>
     </div>
+    <button class="btn btn-primary" type="button" onclick="abrirFormNovoToner()">+ Adicionar toner</button>
+  </div>
+  <div id="catalogoTonerFormPanel" class="panel hidden">
+    <h3>Novo modelo de toner</h3>
+    <form id="catalogoTonerForm" onsubmit="salvarNovoTonerCatalogo(event)">
+      <div class="form-grid">
+        <div class="form-group"><label>Modelo do toner *</label><input id="novoTonerModelo" placeholder="Ex.: TN-3472, CF258X" required></div>
+        <div class="form-group"><label>Último valor pago (R$)</label><input type="number" id="novoTonerUltimoPago" min="0" step="0.01" value="0"></div>
+        <div class="form-group"><label>Custo médio (R$)</label><input type="number" id="novoTonerCustoMedio" min="0" step="0.01" value="0"></div>
+        <div class="form-group"><label>Valor atual do toner (R$)</label><input type="number" id="novoTonerValor" min="0" step="0.01" value="0"></div>
+        <div class="form-group"><label>Motoboy por unidade (R$)</label><input type="number" id="novoTonerMotoboy" min="0" step="0.01" value="0"></div>
+        <div class="form-group"><label>NF por unidade (R$)</label><input type="number" id="novoTonerNF" min="0" step="0.01" value="0"></div>
+      </div>
+      <p class="footer-note">O novo toner será salvo neste navegador. Depois de incluir, você poderá alterar o valor do toner, motoboy e NF diretamente na tabela.</p>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">Salvar toner</button>
+        <button type="button" class="btn btn-secondary" onclick="fecharFormNovoToner()">Cancelar</button>
+      </div>
+    </form>
   </div>
   <div class="panel">
     <div class="alert alert-info">
@@ -2937,8 +2973,8 @@ function abrirImpressao(conteudo){
      </head>
     <body>
       ${conteudo}
-    <\/body>
-    <\/html>
+    </body>
+    </html>
   `);
 
   janela.document.close();
@@ -3727,14 +3763,69 @@ Kyocera|C5350|TK562C / C5300 ciano|10 mil páginas`
   };
 });
 
+const CATALOGO_IMPRESSORAS_STORAGE = "baire_catalogo_impressoras_adicionadas";
+
+function carregarModelosImpressorasAdicionados(){
+  const dados = lerJSON(CATALOGO_IMPRESSORAS_STORAGE, []);
+  return Array.isArray(dados) ? dados : [];
+}
+
+function obterCatalogoImpressorasCompleto(){
+  return CATALOGO_IMPRESSORAS_BASE.concat(carregarModelosImpressorasAdicionados());
+}
+
+function abrirFormModeloImpressora(){
+  document.getElementById("catalogoImpressoraForm")?.reset();
+  document.getElementById("catalogoImpressoraFormPanel")?.classList.remove("hidden");
+  document.getElementById("novoModeloImpMarca")?.focus();
+}
+
+function fecharFormModeloImpressora(){
+  document.getElementById("catalogoImpressoraFormPanel")?.classList.add("hidden");
+  document.getElementById("catalogoImpressoraForm")?.reset();
+}
+
+function salvarModeloCatalogoImpressora(event){
+  event?.preventDefault();
+  const marca = document.getElementById("novoModeloImpMarca").value.trim();
+  const impressora = document.getElementById("novoModeloImpModelo").value.trim();
+  const toner = document.getElementById("novoModeloImpToner").value.trim();
+  const rendimento = document.getElementById("novoModeloImpRendimento").value.trim() || "Não informado";
+  if(!marca || !impressora || !toner){
+    alert("Preencha marca, modelo da impressora e toner compatível.");
+    return;
+  }
+  const todos = obterCatalogoImpressorasCompleto();
+  const duplicado = todos.some(item => item.marca.toLowerCase() === marca.toLowerCase() && item.impressora.toLowerCase() === impressora.toLowerCase());
+  if(duplicado){
+    alert("Esse modelo dessa marca já está cadastrado no catálogo.");
+    return;
+  }
+  const adicionados = carregarModelosImpressorasAdicionados();
+  adicionados.push({marca, impressora, toner, rendimento});
+  salvarJSON(CATALOGO_IMPRESSORAS_STORAGE, adicionados);
+  fecharFormModeloImpressora();
+  renderCatalogoImpressoras();
+  alert("Modelo de impressora incluído no catálogo.");
+}
+
 function renderCatalogoImpressoras(){
   const tbody = document.getElementById("catalogoImpressorasTabela");
   if(!tbody) return;
   const busca = (document.getElementById("catalogoImpressoraBusca")?.value || "").trim().toLowerCase();
-  const marca = document.getElementById("catalogoImpressoraMarca")?.value || "";
-  const lista = CATALOGO_IMPRESSORAS_BASE.filter(function(item){
+  const selectMarca = document.getElementById("catalogoImpressoraMarca");
+  const marcaAtual = selectMarca?.value || "";
+  const todos = obterCatalogoImpressorasCompleto();
+  if(selectMarca){
+    const marcas = [...new Set(todos.map(item => item.marca).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+    const opcoesAtuais = [...selectMarca.options].map(option => option.value);
+    marcas.forEach(marca => {
+      if(!opcoesAtuais.includes(marca)) selectMarca.add(new Option(marca, marca));
+    });
+  }
+  const lista = todos.filter(function(item){
     const texto = [item.marca,item.impressora,item.toner,item.rendimento].join(" ").toLowerCase();
-    return texto.includes(busca) && (!marca || item.marca === marca);
+    return texto.includes(busca) && (!marcaAtual || item.marca === marcaAtual);
   });
   if(!lista.length){
     tbody.innerHTML = '<tr><td colspan="4" class="empty">Nenhum modelo encontrado.</td></tr>';
@@ -3745,7 +3836,7 @@ function renderCatalogoImpressoras(){
   }
   const contador = document.getElementById("catalogoImpressorasContagem");
   if(contador){
-    contador.textContent = lista.length + " modelo(s) encontrado(s) de " + CATALOGO_IMPRESSORAS_BASE.length + " cadastrado(s).";
+    contador.textContent = lista.length + " modelo(s) encontrado(s) de " + todos.length + " cadastrado(s).";
   }
 }
 
@@ -4115,6 +4206,7 @@ function renderHistoricoImpressora(){
    ========================================================= */
 const CATALOGO_TONERS_BASE = [{"modelo":"1","ultimoPago":19.35,"custoMedio":5.13},{"modelo":"12A","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"49A","ultimoPago":19.5,"custoMedio":30.7},{"modelo":"53A","ultimoPago":19.5,"custoMedio":30.4},{"modelo":"63C","ultimoPago":0.0,"custoMedio":38.0},{"modelo":"105A","ultimoPago":19.5,"custoMedio":23.62},{"modelo":"107A","ultimoPago":19.5,"custoMedio":23.74},{"modelo":"217","ultimoPago":19.35,"custoMedio":18.0},{"modelo":"255X","ultimoPago":19.35,"custoMedio":42.03},{"modelo":"258X","ultimoPago":19.35,"custoMedio":51.43},{"modelo":"278A","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"280A","ultimoPago":19.5,"custoMedio":23.46},{"modelo":"280X","ultimoPago":19.35,"custoMedio":29.95},{"modelo":"283","ultimoPago":19.35,"custoMedio":12.15},{"modelo":"283A","ultimoPago":19.5,"custoMedio":19.41},{"modelo":"285","ultimoPago":19.35,"custoMedio":19.0},{"modelo":"285A","ultimoPago":19.5,"custoMedio":19.18},{"modelo":"450","ultimoPago":19.35,"custoMedio":16.05},{"modelo":"464","ultimoPago":19.35,"custoMedio":58.72},{"modelo":"504","ultimoPago":19.35,"custoMedio":4.17},{"modelo":"505A","ultimoPago":19.5,"custoMedio":23.45},{"modelo":"505X","ultimoPago":19.35,"custoMedio":30.15},{"modelo":"540","ultimoPago":19.35,"custoMedio":33.09},{"modelo":"541","ultimoPago":19.35,"custoMedio":33.1},{"modelo":"541A","ultimoPago":19.5,"custoMedio":35.2},{"modelo":"542","ultimoPago":19.35,"custoMedio":33.95},{"modelo":"543","ultimoPago":19.35,"custoMedio":33.1},{"modelo":"544","ultimoPago":19.35,"custoMedio":3.86},{"modelo":"656","ultimoPago":19.35,"custoMedio":175.65},{"modelo":"660","ultimoPago":19.35,"custoMedio":13.95},{"modelo":"664","ultimoPago":19.35,"custoMedio":39.78},{"modelo":"664XL","ultimoPago":0.0,"custoMedio":63.2},{"modelo":"670XL","ultimoPago":0.0,"custoMedio":5.93},{"modelo":"890","ultimoPago":19.35,"custoMedio":29.5},{"modelo":"1005","ultimoPago":19.35,"custoMedio":1144.0},{"modelo":"1060","ultimoPago":19.35,"custoMedio":13.65},{"modelo":"2370","ultimoPago":19.35,"custoMedio":17.37},{"modelo":"2612","ultimoPago":19.35,"custoMedio":0.0},{"modelo":"2612A","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"2885A","ultimoPago":19.5,"custoMedio":19.0},{"modelo":"3020","ultimoPago":19.35,"custoMedio":26.77},{"modelo":"3200","ultimoPago":19.35,"custoMedio":27.2},{"modelo":"3405W","ultimoPago":0.0,"custoMedio":25.05},{"modelo":"3662XL","ultimoPago":0.0,"custoMedio":98.55},{"modelo":"4200","ultimoPago":19.35,"custoMedio":42.2},{"modelo":"4600","ultimoPago":19.35,"custoMedio":34.62},{"modelo":"5340","ultimoPago":19.35,"custoMedio":240.0},{"modelo":"7065","ultimoPago":19.35,"custoMedio":240.0},{"modelo":"8080","ultimoPago":19.35,"custoMedio":80.0},{"modelo":"A","ultimoPago":19.5,"custoMedio":21.4},{"modelo":"A -","ultimoPago":19.5,"custoMedio":0.0},{"modelo":"A-","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"A- CASA DELA","ultimoPago":19.8,"custoMedio":19.8},{"modelo":"B021","ultimoPago":9.35,"custoMedio":16.76},{"modelo":"B215","ultimoPago":38.0,"custoMedio":36.0},{"modelo":"B7520","ultimoPago":160.0,"custoMedio":160.0},{"modelo":"BOBINA ROTULADORA BROTHER","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"C440","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"CB540","ultimoPago":33.7,"custoMedio":33.58},{"modelo":"CB541","ultimoPago":33.1,"custoMedio":32.8},{"modelo":"CB542","ultimoPago":33.1,"custoMedio":33.1},{"modelo":"CB543","ultimoPago":33.1,"custoMedio":33.1},{"modelo":"CE314","ultimoPago":25.2,"custoMedio":25.2},{"modelo":"CF217A","ultimoPago":19.1,"custoMedio":16.74},{"modelo":"CF219A","ultimoPago":24.15,"custoMedio":24.15},{"modelo":"CF414A","ultimoPago":44.0,"custoMedio":44.0},{"modelo":"D101","ultimoPago":21.9,"custoMedio":23.93},{"modelo":"D104","ultimoPago":19.35,"custoMedio":25.2},{"modelo":"D111","ultimoPago":22.6,"custoMedio":23.6},{"modelo":"D116","ultimoPago":24.0,"custoMedio":24.74},{"modelo":"D203","ultimoPago":47.7,"custoMedio":47.7},{"modelo":"DCP2540DW","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"DR116","ultimoPago":22.6,"custoMedio":23.21},{"modelo":"DR217","ultimoPago":21.75,"custoMedio":21.75},{"modelo":"DR360","ultimoPago":27.0,"custoMedio":30.3},{"modelo":"DR450","ultimoPago":20.4,"custoMedio":21.13},{"modelo":"DR464","ultimoPago":43.2,"custoMedio":43.2},{"modelo":"DR650","ultimoPago":28.0,"custoMedio":27.88},{"modelo":"DR660","ultimoPago":19.15,"custoMedio":21.12},{"modelo":"DR750","ultimoPago":31.15,"custoMedio":31.15},{"modelo":"DR880","ultimoPago":28.15,"custoMedio":28.15},{"modelo":"DR1060","ultimoPago":17.75,"custoMedio":17.57},{"modelo":"DR2370","ultimoPago":19.8,"custoMedio":21.27},{"modelo":"DRB021","ultimoPago":47.25,"custoMedio":45.62},{"modelo":"DRUM660","ultimoPago":19.8,"custoMedio":19.8},{"modelo":"E110","ultimoPago":399.0,"custoMedio":399.0},{"modelo":"L575","ultimoPago":3.8,"custoMedio":3.8},{"modelo":"L4260","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"LEX","ultimoPago":50.75,"custoMedio":62.43},{"modelo":"LEX -","ultimoPago":50.75,"custoMedio":0.0},{"modelo":"LEX-","ultimoPago":50.75,"custoMedio":0.0},{"modelo":"M1132","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"PB210","ultimoPago":28.7,"custoMedio":28.7},{"modelo":"RICARDO","ultimoPago":16.3,"custoMedio":16.3},{"modelo":"SEM PRODUTO","ultimoPago":19.35,"custoMedio":64.54},{"modelo":"T544","ultimoPago":3.8,"custoMedio":3.8},{"modelo":"TINTA PRETA EPSON 1","ultimoPago":27.7,"custoMedio":27.7},{"modelo":"TN116","ultimoPago":13.4,"custoMedio":15.46},{"modelo":"TN360","ultimoPago":21.5,"custoMedio":22.16},{"modelo":"TN419","ultimoPago":31.9,"custoMedio":31.9},{"modelo":"TN450","ultimoPago":16.6,"custoMedio":15.52},{"modelo":"TN580","ultimoPago":25.8,"custoMedio":25.8},{"modelo":"TN650","ultimoPago":25.75,"custoMedio":26.39},{"modelo":"TN660","ultimoPago":15.75,"custoMedio":14.07},{"modelo":"TN750","ultimoPago":30.0,"custoMedio":28.65},{"modelo":"TN880","ultimoPago":29.5,"custoMedio":29.21},{"modelo":"TN1060","ultimoPago":11.5,"custoMedio":12.0},{"modelo":"TN2370","ultimoPago":15.75,"custoMedio":14.06},{"modelo":"TN3612","ultimoPago":50.95,"custoMedio":49.3},{"modelo":"TNB021","ultimoPago":13.5,"custoMedio":9.88},{"modelo":"W1030X","ultimoPago":49.15,"custoMedio":50.45},{"modelo":"W1330X","ultimoPago":44.8,"custoMedio":44.8},{"modelo":"W9008","ultimoPago":125.0,"custoMedio":125.0},{"modelo":"X464","ultimoPago":65.05,"custoMedio":65.05}];
 const CATALOGO_TONERS_STORAGE = "baire_catalogo_toners";
+const CATALOGO_TONERS_CUSTOM_STORAGE = "baire_catalogo_toners_adicionados";
 
 function carregarCatalogoToners(){
   return lerJSON(CATALOGO_TONERS_STORAGE, {});
@@ -4122,6 +4214,59 @@ function carregarCatalogoToners(){
 
 function salvarCatalogoToners(dados){
   salvarJSON(CATALOGO_TONERS_STORAGE, dados);
+}
+
+function carregarTonersAdicionados(){
+  const dados = lerJSON(CATALOGO_TONERS_CUSTOM_STORAGE, []);
+  return Array.isArray(dados) ? dados : [];
+}
+
+function obterCatalogoTonersCompleto(){
+  return CATALOGO_TONERS_BASE.concat(carregarTonersAdicionados());
+}
+
+function abrirFormNovoToner(){
+  document.getElementById("catalogoTonerForm")?.reset();
+  document.getElementById("novoTonerUltimoPago").value = "0";
+  document.getElementById("novoTonerCustoMedio").value = "0";
+  document.getElementById("novoTonerValor").value = "0";
+  document.getElementById("novoTonerMotoboy").value = "0";
+  document.getElementById("novoTonerNF").value = "0";
+  document.getElementById("catalogoTonerFormPanel")?.classList.remove("hidden");
+  document.getElementById("novoTonerModelo")?.focus();
+}
+
+function fecharFormNovoToner(){
+  document.getElementById("catalogoTonerFormPanel")?.classList.add("hidden");
+  document.getElementById("catalogoTonerForm")?.reset();
+}
+
+function salvarNovoTonerCatalogo(event){
+  event?.preventDefault();
+  const modelo = document.getElementById("novoTonerModelo").value.trim();
+  const ultimoPago = numeroCatalogo(document.getElementById("novoTonerUltimoPago").value);
+  const custoMedio = numeroCatalogo(document.getElementById("novoTonerCustoMedio").value);
+  const valorToner = numeroCatalogo(document.getElementById("novoTonerValor").value);
+  const motoboy = numeroCatalogo(document.getElementById("novoTonerMotoboy").value);
+  const nf = numeroCatalogo(document.getElementById("novoTonerNF").value);
+  if(!modelo){
+    alert("Informe o modelo do toner.");
+    return;
+  }
+  const todos = obterCatalogoTonersCompleto();
+  if(todos.some(item => item.modelo.toLowerCase() === modelo.toLowerCase())){
+    alert("Esse modelo de toner já está cadastrado.");
+    return;
+  }
+  const adicionados = carregarTonersAdicionados();
+  adicionados.push({modelo, ultimoPago, custoMedio});
+  salvarJSON(CATALOGO_TONERS_CUSTOM_STORAGE, adicionados);
+  const custos = carregarCatalogoToners();
+  custos[modelo] = {valorToner: valorToner || ultimoPago || custoMedio, motoboy, nf};
+  salvarCatalogoToners(custos);
+  fecharFormNovoToner();
+  renderCatalogoToners();
+  alert("Toner incluído no catálogo.");
 }
 
 function numeroCatalogo(valor){
@@ -4134,7 +4279,7 @@ function renderCatalogoToners(){
   if(!tbody) return;
   const busca = (document.getElementById("catalogoTonerBusca")?.value || "").trim().toLowerCase();
   const dadosSalvos = carregarCatalogoToners();
-  const lista = CATALOGO_TONERS_BASE.filter(item => item.modelo.toLowerCase().includes(busca));
+  const lista = obterCatalogoTonersCompleto().filter(item => item.modelo.toLowerCase().includes(busca));
 
   if(!lista.length){
     tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum modelo encontrado.</td></tr>';
@@ -4154,9 +4299,9 @@ function renderCatalogoToners(){
         <td><strong>${escapeHTML(item.modelo)}</strong></td>
         <td>${item.ultimoPago > 0 ? dinheiro(item.ultimoPago) : "—"}</td>
         <td>${item.custoMedio > 0 ? dinheiro(item.custoMedio) : "—"}</td>
-        <td><input aria-label="Valor do toner ${item.modelo}" type="number" min="0" step="0.01" value="${valorToner.toFixed(2)}" style="width:110px" onchange="atualizarCustoToner('${indice}','valorToner',this.value)" /></td>
-        <td><input aria-label="Motoboy por unidade ${item.modelo}" type="number" min="0" step="0.01" value="${motoboy.toFixed(2)}" style="width:100px" onchange="atualizarCustoToner('${indice}','motoboy',this.value)" /></td>
-        <td><input aria-label="Custo NF por unidade ${item.modelo}" type="number" min="0" step="0.01" value="${nf.toFixed(2)}" style="width:100px" onchange="atualizarCustoToner('${indice}','nf',this.value)" /></td>
+        <td><input aria-label="Valor do toner ${escapeHTML(item.modelo)}" type="number" min="0" step="0.01" value="${valorToner.toFixed(2)}" style="width:110px" onchange="atualizarCustoToner('${indice}','valorToner',this.value)" /></td>
+        <td><input aria-label="Motoboy por unidade ${escapeHTML(item.modelo)}" type="number" min="0" step="0.01" value="${motoboy.toFixed(2)}" style="width:100px" onchange="atualizarCustoToner('${indice}','motoboy',this.value)" /></td>
+        <td><input aria-label="Custo NF por unidade ${escapeHTML(item.modelo)}" type="number" min="0" step="0.01" value="${nf.toFixed(2)}" style="width:100px" onchange="atualizarCustoToner('${indice}','nf',this.value)" /></td>
         <td><strong>${dinheiro(custoTotal)}</strong></td>
         <td><strong>${dinheiro(vendaMinima)}</strong></td>
       </tr>`;
@@ -4165,7 +4310,7 @@ function renderCatalogoToners(){
 
 function atualizarCustoToner(indiceLista, campo, valor){
   const busca = (document.getElementById("catalogoTonerBusca")?.value || "").trim().toLowerCase();
-  const lista = CATALOGO_TONERS_BASE.filter(item => item.modelo.toLowerCase().includes(busca));
+  const lista = obterCatalogoTonersCompleto().filter(item => item.modelo.toLowerCase().includes(busca));
   const item = lista[Number(indiceLista)];
   if(!item || !["valorToner","motoboy","nf"].includes(campo)) return;
   const dados = carregarCatalogoToners();
