@@ -7304,87 +7304,347 @@ document.addEventListener("DOMContentLoaded", function(){
 
 
 /* =========================================================
-   USUÁRIOS / ACESSO LOCAL
+   USUÁRIOS / ACESSO LOCAL - VERSÃO ESTÁVEL
    ========================================================= */
 const STORAGE_USUARIOS = "baire_usuarios";
 const STORAGE_SESSAO = "baire_sessao";
 let usuarios = [];
 
 function hashSenha(texto){
-  let hash=0;
-  for(let i=0;i<texto.length;i++){hash=((hash<<5)-hash)+texto.charCodeAt(i);hash|=0;}
+  let hash = 0;
+  texto = String(texto ?? "");
+  for(let i=0;i<texto.length;i++){
+    hash = ((hash << 5) - hash) + texto.charCodeAt(i);
+    hash |= 0;
+  }
   return String(hash);
 }
+
+function escapeHtml(v){
+  return String(v ?? "").replace(/[&<>\'"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\'":"&#39;","\"":"&quot;"}[c];
+  });
+}
+
 function carregarUsuarios(){
-  try{usuarios=JSON.parse(localStorage.getItem(STORAGE_USUARIOS)||"[]");}catch(e){usuarios=[];}
+  try{
+    const salvo = localStorage.getItem(STORAGE_USUARIOS);
+    usuarios = salvo ? JSON.parse(salvo) : [];
+    if(!Array.isArray(usuarios)) usuarios = [];
+  }catch(e){
+    usuarios = [];
+  }
+
+  /* Migração das versões anteriores:
+     se o único administrador antigo usava admin123, a senha passa a ser 1234. */
+  if(usuarios.length === 1 &&
+     String(usuarios[0].login || "").trim().toLowerCase() === "admin" &&
+     String(usuarios[0].senha) === hashSenha("admin123")){
+    usuarios[0].senha = hashSenha("1234");
+    usuarios[0].nome = usuarios[0].nome || "Administrador";
+    usuarios[0].perfil = "Administrador";
+    usuarios[0].status = "Ativo";
+    salvarUsuarios();
+  }
+
   if(!usuarios.length){
-    usuarios=[{id:Date.now(),nome:"Administrador",login:"admin",senha:hashSenha("admin123"),perfil:"Administrador",status:"Ativo"}];
+    usuarios = [{
+      id: 1,
+      nome: "Administrador",
+      login: "admin",
+      senha: hashSenha("1234"),
+      perfil: "Administrador",
+      status: "Ativo"
+    }];
     salvarUsuarios();
   }
 }
-function salvarUsuarios(){localStorage.setItem(STORAGE_USUARIOS,JSON.stringify(usuarios));}
-function sessaoAtual(){try{return JSON.parse(localStorage.getItem(STORAGE_SESSAO)||"null");}catch(e){return null;}}
-function atualizarBarraUsuario(){
-  const el=document.getElementById("userBar"); const u=sessaoAtual(); if(!el)return;
-  if(u){el.innerHTML='<div class="user-avatar">'+escapeHtml((u.nome||"U").charAt(0).toUpperCase())+'</div><span><strong>'+escapeHtml(u.nome)+'</strong> · '+escapeHtml(u.perfil)+'</span><button class="btn btn-secondary btn-small" onclick="sairSistema()">Sair</button>';}
+
+function salvarUsuarios(){
+  localStorage.setItem(STORAGE_USUARIOS, JSON.stringify(usuarios));
 }
-function escapeHtml(v){return String(v??"").replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-function exibirErroLogin(msg){const el=document.getElementById("loginErro");if(el){el.textContent=msg;el.classList.remove("hidden");}}
-function entrarSistema(login,senha){
-  const u=usuarios.find(x=>String(x.login).toLowerCase()===String(login).trim().toLowerCase() && x.senha===hashSenha(senha) && x.status!=="Inativo");
-  if(!u){exibirErroLogin("Usuário ou senha inválidos, ou usuário inativo.");return false;}
-  localStorage.setItem(STORAGE_SESSAO,JSON.stringify({id:u.id,nome:u.nome,login:u.login,perfil:u.perfil}));
-  document.getElementById("loginOverlay").classList.add("hidden");
+
+function sessaoAtual(){
+  try{
+    return JSON.parse(localStorage.getItem(STORAGE_SESSAO) || "null");
+  }catch(e){
+    return null;
+  }
+}
+
+function atualizarBarraUsuario(){
+  const el = document.getElementById("userBar");
+  const u = sessaoAtual();
+  if(!el) return;
+
+  if(!u){
+    el.innerHTML = "";
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="user-avatar">${escapeHtml((u.nome || "U").charAt(0).toUpperCase())}</div>
+    <span>Olá, <strong>${escapeHtml(u.nome || "Usuário")}</strong> · ${escapeHtml(u.perfil || "")}</span>
+    <button class="btn btn-secondary btn-small" type="button" onclick="sairSistema()">Sair</button>
+  `;
+}
+
+function exibirErroLogin(msg){
+  const el = document.getElementById("loginErro");
+  if(el){
+    el.textContent = msg;
+    el.classList.remove("hidden");
+  }
+}
+
+function limparErroLogin(){
+  const el = document.getElementById("loginErro");
+  if(el){
+    el.textContent = "";
+    el.classList.add("hidden");
+  }
+}
+
+function entrarSistema(login, senha){
+  const loginNormalizado = String(login || "").trim().toLowerCase();
+  const senhaTexto = String(senha || "");
+
+  const u = usuarios.find(function(x){
+    return String(x.login || "").trim().toLowerCase() === loginNormalizado &&
+           String(x.senha) === hashSenha(senhaTexto) &&
+           String(x.status || "Ativo") !== "Inativo";
+  });
+
+  if(!u){
+    exibirErroLogin("Usuário ou senha inválidos.");
+    return false;
+  }
+
+  localStorage.setItem(STORAGE_SESSAO, JSON.stringify({
+    id: u.id,
+    nome: u.nome,
+    login: u.login,
+    perfil: u.perfil
+  }));
+
+  const overlay = document.getElementById("loginOverlay");
+  if(overlay) overlay.classList.add("hidden");
+
+  limparErroLogin();
   atualizarBarraUsuario();
   aplicarPermissoes();
   return true;
 }
-function sairSistema(){localStorage.removeItem(STORAGE_SESSAO);location.reload();}
+
+function sairSistema(){
+  localStorage.removeItem(STORAGE_SESSAO);
+  location.reload();
+}
+
 function novoUsuario(){
-  if(!ehAdministrador()){alert("Somente um Administrador pode criar usuários.");return;}
-  document.getElementById("usuarioForm").reset();document.getElementById("usuarioIndex").value="";document.getElementById("usuarioStatus").value="Ativo";document.getElementById("usuarioFormTitle").textContent="Novo Usuário";document.getElementById("usuarioFormPanel").classList.remove("hidden");
+  if(!ehAdministrador()){
+    alert("Somente um Administrador pode criar usuários.");
+    return;
+  }
+  const form = document.getElementById("usuarioForm");
+  if(form) form.reset();
+  document.getElementById("usuarioIndex").value = "";
+  document.getElementById("usuarioStatus").value = "Ativo";
+  document.getElementById("usuarioFormTitle").textContent = "Novo Usuário";
+  document.getElementById("usuarioFormPanel").classList.remove("hidden");
 }
-function fecharUsuarioForm(){document.getElementById("usuarioFormPanel")?.classList.add("hidden");}
+
+function fecharUsuarioForm(){
+  document.getElementById("usuarioFormPanel")?.classList.add("hidden");
+}
+
 function salvarUsuario(event){
-  event.preventDefault(); if(!ehAdministrador()){alert("Somente um Administrador pode alterar usuários.");return;}
-  const idx=document.getElementById("usuarioIndex").value; const nome=document.getElementById("usuarioNome").value.trim(); const login=document.getElementById("usuarioLogin").value.trim(); const senha=document.getElementById("usuarioSenha").value;
-  if(!nome||!login){alert("Preencha nome e usuário.");return;}
-  const repetido=usuarios.some((u,i)=>i!==Number(idx||-1)&&u.login.toLowerCase()===login.toLowerCase()); if(repetido){alert("Este usuário/login já existe.");return;}
-  if(idx==="" && !senha){alert("Informe uma senha para o novo usuário.");return;}
-  const base={nome,login,perfil:document.getElementById("usuarioPerfil").value,status:document.getElementById("usuarioStatus").value};
-  if(idx===""){base.id=Date.now();base.senha=hashSenha(senha);usuarios.push(base);}else{base.id=usuarios[Number(idx)].id;base.senha=senha?hashSenha(senha):usuarios[Number(idx)].senha;usuarios[Number(idx)]=base;}
-  salvarUsuarios();fecharUsuarioForm();renderUsuarios();alert("Usuário salvo com sucesso.");
+  event.preventDefault();
+
+  if(!ehAdministrador()){
+    alert("Somente um Administrador pode alterar usuários.");
+    return;
+  }
+
+  const idx = document.getElementById("usuarioIndex").value;
+  const nome = document.getElementById("usuarioNome").value.trim();
+  const login = document.getElementById("usuarioLogin").value.trim();
+  const senha = document.getElementById("usuarioSenha").value;
+  const perfil = document.getElementById("usuarioPerfil").value;
+  const status = document.getElementById("usuarioStatus").value;
+
+  if(!nome || !login){
+    alert("Preencha nome e usuário.");
+    return;
+  }
+
+  if(idx === "" && !senha){
+    alert("Informe uma senha para o novo usuário.");
+    return;
+  }
+
+  const repetido = usuarios.some(function(u,i){
+    return i !== Number(idx || -1) &&
+           String(u.login || "").trim().toLowerCase() === login.toLowerCase();
+  });
+
+  if(repetido){
+    alert("Este usuário/login já existe.");
+    return;
+  }
+
+  if(idx === ""){
+    usuarios.push({
+      id: Date.now(),
+      nome: nome,
+      login: login,
+      senha: hashSenha(senha),
+      perfil: perfil,
+      status: status
+    });
+  }else{
+    const u = usuarios[Number(idx)];
+    if(!u) return;
+    u.nome = nome;
+    u.login = login;
+    u.perfil = perfil;
+    u.status = status;
+    if(senha) u.senha = hashSenha(senha);
+  }
+
+  salvarUsuarios();
+  fecharUsuarioForm();
+  renderUsuarios();
+  alert("Usuário salvo com sucesso.");
 }
+
 function editarUsuario(index){
-  if(!ehAdministrador()){alert("Somente um Administrador pode editar usuários.");return;} const u=usuarios[index];if(!u)return;
-  document.getElementById("usuarioIndex").value=index;document.getElementById("usuarioNome").value=u.nome;document.getElementById("usuarioLogin").value=u.login;document.getElementById("usuarioSenha").value="";document.getElementById("usuarioPerfil").value=u.perfil;document.getElementById("usuarioStatus").value=u.status;document.getElementById("usuarioFormTitle").textContent="Editar Usuário";document.getElementById("usuarioFormPanel").classList.remove("hidden");
+  if(!ehAdministrador()){
+    alert("Somente um Administrador pode editar usuários.");
+    return;
+  }
+
+  const u = usuarios[index];
+  if(!u) return;
+
+  document.getElementById("usuarioIndex").value = index;
+  document.getElementById("usuarioNome").value = u.nome || "";
+  document.getElementById("usuarioLogin").value = u.login || "";
+  document.getElementById("usuarioSenha").value = "";
+  document.getElementById("usuarioPerfil").value = u.perfil || "Administrador";
+  document.getElementById("usuarioStatus").value = u.status || "Ativo";
+  document.getElementById("usuarioFormTitle").textContent = "Editar Usuário";
+  document.getElementById("usuarioFormPanel").classList.remove("hidden");
 }
+
 function excluirUsuario(index){
-  if(!ehAdministrador()){alert("Somente um Administrador pode excluir usuários.");return;} const u=usuarios[index];if(!u)return;
-  const sess=sessaoAtual(); if(sess&&String(sess.id)===String(u.id)){alert("Você não pode excluir o usuário que está usando agora.");return;}
-  if(usuarios.filter(x=>x.status!=="Inativo").length<=1 && u.status!=="Inativo"){alert("Mantenha pelo menos um Administrador ativo no sistema.");return;}
-  if(confirm("Excluir o usuário "+u.nome+"?")){usuarios.splice(index,1);salvarUsuarios();renderUsuarios();}
+  if(!ehAdministrador()){
+    alert("Somente um Administrador pode excluir usuários.");
+    return;
+  }
+
+  const u = usuarios[index];
+  if(!u) return;
+
+  const sess = sessaoAtual();
+  if(sess && String(sess.id) === String(u.id)){
+    alert("Você não pode excluir o usuário que está usando agora.");
+    return;
+  }
+
+  if(usuarios.filter(function(x){return String(x.status) !== "Inativo";}).length <= 1 && u.status !== "Inativo"){
+    alert("Mantenha pelo menos um Administrador ativo no sistema.");
+    return;
+  }
+
+  if(confirm("Excluir o usuário " + u.nome + "?")){
+    usuarios.splice(index,1);
+    salvarUsuarios();
+    renderUsuarios();
+  }
 }
+
 function renderUsuarios(){
-  const t=document.getElementById("usuariosTabela");if(!t)return; if(!ehAdministrador()){t.innerHTML='<tr><td colspan="5" class="empty">Apenas Administradores podem gerenciar usuários.</td></tr>';return;}
-  if(!usuarios.length){t.innerHTML='<tr><td colspan="5" class="empty">Nenhum usuário cadastrado.</td></tr>';return;}
-  t.innerHTML=usuarios.map((u,i)=>'<tr><td><strong>'+escapeHtml(u.nome)+'</strong></td><td>'+escapeHtml(u.login)+'</td><td><span class="badge badge-blue">'+escapeHtml(u.perfil)+'</span></td><td><span class="badge '+(u.status==='Ativo'?'badge-green':'badge-red')+'">'+escapeHtml(u.status)+'</span></td><td><button class="btn btn-secondary btn-small" onclick="editarUsuario('+i+')">Editar</button> <button class="btn btn-danger btn-small" onclick="excluirUsuario('+i+')">Excluir</button></td></tr>').join('');
+  const t = document.getElementById("usuariosTabela");
+  if(!t) return;
+
+  if(!ehAdministrador()){
+    t.innerHTML = '<tr><td colspan="5" class="empty">Apenas Administradores podem gerenciar usuários.</td></tr>';
+    return;
+  }
+
+  if(!usuarios.length){
+    t.innerHTML = '<tr><td colspan="5" class="empty">Nenhum usuário cadastrado.</td></tr>';
+    return;
+  }
+
+  t.innerHTML = usuarios.map(function(u,i){
+    return `
+      <tr>
+        <td><strong>${escapeHtml(u.nome)}</strong></td>
+        <td>${escapeHtml(u.login)}</td>
+        <td><span class="badge badge-blue">${escapeHtml(u.perfil)}</span></td>
+        <td><span class="badge ${u.status === "Ativo" ? "badge-green" : "badge-red"}">${escapeHtml(u.status)}</span></td>
+        <td>
+          <button class="btn btn-secondary btn-small" type="button" onclick="editarUsuario(${i})">Editar</button>
+          <button class="btn btn-danger btn-small" type="button" onclick="excluirUsuario(${i})">Excluir</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
-function ehAdministrador(){const s=sessaoAtual();return !!s&&s.perfil==="Administrador";}
-function aplicarPermissoes(){renderUsuarios();}
+
+function ehAdministrador(){
+  const s = sessaoAtual();
+  return !!s && s.perfil === "Administrador";
+}
+
+function aplicarPermissoes(){
+  renderUsuarios();
+}
+
 function protegerAcesso(){
-  carregarUsuarios(); const s=sessaoAtual(); const overlay=document.getElementById("loginOverlay");
-  if(s && usuarios.some(u=>String(u.id)===String(s.id)&&u.status!=="Inativo")){overlay?.classList.add("hidden");atualizarBarraUsuario();aplicarPermissoes();}
-  else{localStorage.removeItem(STORAGE_SESSAO);overlay?.classList.remove("hidden");}
+  carregarUsuarios();
+
+  const s = sessaoAtual();
+  const overlay = document.getElementById("loginOverlay");
+
+  const usuarioValido = s && usuarios.some(function(u){
+    return String(u.id) === String(s.id) && String(u.status || "Ativo") !== "Inativo";
+  });
+
+  if(usuarioValido){
+    if(overlay) overlay.classList.add("hidden");
+    atualizarBarraUsuario();
+    aplicarPermissoes();
+  }else{
+    localStorage.removeItem(STORAGE_SESSAO);
+    if(overlay) overlay.classList.remove("hidden");
+    atualizarBarraUsuario();
+  }
 }
 
-
-document.addEventListener("DOMContentLoaded",function(){
+/* O login é inicializado separadamente para não depender do restante do sistema. */
+document.addEventListener("DOMContentLoaded", function(){
   protegerAcesso();
-  const lf=document.getElementById("loginForm");
-  if(lf)lf.addEventListener("submit",function(e){e.preventDefault();entrarSistema(document.getElementById("loginUsuario").value,document.getElementById("loginSenha").value);});
-  const uf=document.getElementById("usuarioForm");
-  if(uf)uf.addEventListener("submit",salvarUsuario);
+
+  const lf = document.getElementById("loginForm");
+  if(lf && lf.dataset.loginAtivo !== "1"){
+    lf.dataset.loginAtivo = "1";
+    lf.addEventListener("submit", function(e){
+      e.preventDefault();
+      entrarSistema(
+        document.getElementById("loginUsuario").value,
+        document.getElementById("loginSenha").value
+      );
+    });
+  }
+
+  const uf = document.getElementById("usuarioForm");
+  if(uf && uf.dataset.usuarioAtivo !== "1"){
+    uf.dataset.usuarioAtivo = "1";
+    uf.addEventListener("submit", salvarUsuario);
+  }
 });
 
 /* =========================================================
