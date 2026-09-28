@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BAIRE - Sistema Empresarial</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23174ea6%22/><text x=%2250%22 y=%2265%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22>B</text></svg>">
 <style>
 :root{
   --azul:#174ea6;
@@ -297,7 +296,6 @@ tr:hover td{background:#f8fafc}
     <button onclick="showScreen('dashboard')" id="menu-dashboard" class="active">🏠 Dashboard</button>
     <button onclick="showScreen('clientes')" id="menu-clientes">👥 Clientes</button>
     <button onclick="showScreen('produtos')" id="menu-produtos">📦 Produtos</button>
-    <button onclick="showScreen('catalogo-toners')" id="menu-catalogo-toners">🧾 Catálogo de Toners</button>
     <button onclick="showScreen('impressoras')" id="menu-impressoras">🖨️ Impressoras</button>
     <button onclick="showScreen('vendas')" id="menu-vendas">💰 Vendas</button>
     <button onclick="showScreen('assistencia')" id="menu-assistencia">🔧 Assistência Técnica</button>
@@ -593,37 +591,6 @@ tr:hover td{background:#f8fafc}
   </div>
 </section>
 
-<section id="screen-catalogo-toners" class="screen">
-  <div class="topbar">
-    <div>
-      <h2>Catálogo de Toners e Custos</h2>
-      <p style="color:#64748b;margin-top:4px">Lista importada da planilha Printer Up. Informe o custo do motoboy e da NF por unidade.</p>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="alert alert-info">
-      <strong>Como calcular:</strong> custo total = valor do toner + motoboy por unidade + custo da NF por unidade.
-      O preço mínimo usa margem de 40% sobre o custo total. Para distribuir uma entrega entre vários toners,
-      informe o valor do motoboy dividido pela quantidade de unidades compradas.
-    </div>
-    <div class="form-group" style="max-width:420px;margin-bottom:16px">
-      <label>Buscar modelo</label>
-      <input id="catalogoTonerBusca" placeholder="Digite o modelo do toner..." oninput="renderCatalogoToners()">
-    </div>
-    <div class="table-container">
-      <table>
-        <thead><tr>
-          <th>Modelo</th><th>Último valor pago</th><th>Custo médio planilha</th>
-          <th>Valor toner (R$)</th><th>Motoboy/un. (R$)</th><th>NF/un. (R$)</th>
-          <th>Custo total</th><th>Venda mínima (40%)</th>
-        </tr></thead>
-        <tbody id="catalogoTonersTabela"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-
 <section id="screen-impressoras" class="screen">
 
     <div class="topbar">
@@ -641,6 +608,27 @@ tr:hover td{background:#f8fafc}
             + Nova Impressora
         </button>
 
+    </div>
+
+
+    <!-- CATÁLOGO DE IMPRESSORAS -->
+    <div class="panel" style="margin-top:18px;">
+        <div class="topbar" style="margin-bottom:12px;">
+            <div>
+                <h3 style="margin-bottom:4px;">📚 Catálogo de Impressoras e Toners</h3>
+                <p style="margin:0;color:#64748b;font-size:13px;">Modelos do catálogo, toner compatível e número de impressões informado.</p>
+            </div>
+            <div style="font-size:13px;color:#64748b;"><strong>185</strong> modelos</div>
+        </div>
+        <div class="toolbar" style="margin-bottom:12px;">
+            <input class="search" id="catalogoImpressorasBusca" placeholder="🔎 Pesquisar impressora, marca ou toner...">
+        </div>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Marca</th><th>Modelo da impressora</th><th>Modelo do toner</th><th>Nº de impressões</th><th>Ação</th></tr></thead>
+                <tbody id="catalogoImpressorasTabela"></tbody>
+            </table>
+        </div>
     </div>
 
 
@@ -1582,7 +1570,7 @@ tr:hover td{background:#f8fafc}
     </div>
     <div id="usuarioFormPanel" class="hidden" style="background:#f8fafc;border:1px solid #dbe3ef;border-radius:10px;padding:16px;margin-bottom:16px">
       <h4 id="usuarioFormTitle" style="margin-top:0">Novo Usuário</h4>
-    <form id="usuarioForm" onsubmit="salvarUsuario(event)">
+      <form id="usuarioForm">
         <input type="hidden" id="usuarioIndex">
         <div class="form-grid">
           <div class="form-group"><label>Nome *</label><input id="usuarioNome" required></div>
@@ -1623,7 +1611,6 @@ const STORAGE = {
   orcamentos: "baire_orcamentos",
   locacoes: "baire_locacoes",
   contas: "baire_contas",
-  usuarios: "baire_usuarios",
   configuracoes: "baire_configuracoes"
 };
 
@@ -1634,8 +1621,6 @@ let ordensServico = [];
 let orcamentos = [];
 let locacoes = [];
 let contas = [];
-let usuarios = [];
-
 let configuracoes = {
   margemMinima: 40,
   margemIdeal: 100,
@@ -1651,19 +1636,6 @@ function carregarDados(){
   orcamentos = lerJSON(STORAGE.orcamentos, []);
   locacoes = lerJSON(STORAGE.locacoes, []);
   contas = lerJSON(STORAGE.contas, []);
-  usuarios = lerJSON(STORAGE.usuarios, []);
-
-  if(!Array.isArray(usuarios) || !usuarios.length){
-    usuarios = [{
-      id: 1,
-      nome: "Administrador",
-      login: "admin",
-      senha: "1234",
-      perfil: "Administrador",
-      status: "Ativo"
-    }];
-    salvarUsuarios();
-  }
 
   const cfg = lerJSON(STORAGE.configuracoes, null);
   if(cfg){
@@ -1739,7 +1711,6 @@ function showScreen(screen){
   if(screen === "dashboard") atualizarDashboard();
   if(screen === "clientes") renderClientes();
   if(screen === "produtos") renderProdutos();
-  if(screen === "catalogo-toners") renderCatalogoToners();
   if(screen === "vendas"){
     prepararVenda();
     renderVendas();
@@ -2876,348 +2847,35 @@ function abrirImpressao(conteudo){
         h1{font-size:28px}
         h2{margin-top:10px}
         hr{border:0;border-top:1px solid #ccc;margin:20px 0}
-      </style>
-     </head>
-    <body>
-      ${conteudo}
-    </body>
+      
+#catalogoImpressorasBusca{min-width:280px}
+@media(max-width:900px){#catalogoImpressorasBusca{width:100%;min-width:0}}
+</style>
+    </head>
+    <body>${conteudo}</body>
     </html>
   `);
 
   janela.document.close();
   janela.focus();
-  janela.print();
+
+  setTimeout(function(){
+    janela.print();
+  },300);
 }
-
-
-/* =========================================================
-   INICIALIZAÇÃO
-   ========================================================= */
-
-function inicializarSistema(){
-  carregarDados();
-
-  renderClientes();
-  renderProdutos();
-  prepararVenda();
-  renderVendas();
-  renderOS();
-  renderOrcamentos();
-  renderLocacoes();
-  renderFinanceiro();
-  atualizarDashboard();
-  renderRelatorios();
-  carregarConfiguracoesForm();
-
-  const clienteBusca = document.getElementById("clienteBusca");
-  if(clienteBusca){
-    clienteBusca.addEventListener("input", renderClientes);
-  }
-
-  const produtoBusca = document.getElementById("produtoBusca");
-  if(produtoBusca){
-    produtoBusca.addEventListener("input", renderProdutos);
-  }
-
-  document.getElementById("clienteForm")?.addEventListener("submit", salvarCliente);
-  document.getElementById("produtoForm")?.addEventListener("submit", salvarProduto);
-  document.getElementById("osForm")?.addEventListener("submit", salvarOS);
-  document.getElementById("orcamentoForm")?.addEventListener("submit", salvarOrcamento);
-  document.getElementById("locacaoForm")?.addEventListener("submit", salvarLocacao);
-  document.getElementById("contaForm")?.addEventListener("submit", salvarConta);
-
-  document.getElementById("produtoCusto")?.addEventListener("input", calcularPrecosProduto);
-  document.getElementById("produtoMargemMinima")?.addEventListener("input", calcularPrecosProduto);
-  document.getElementById("produtoMargemIdeal")?.addEventListener("input", calcularPrecosProduto);
-
-  document.getElementById("vendaProduto")?.addEventListener("change", atualizarVendaProduto);
-  document.getElementById("vendaQuantidade")?.addEventListener("input", atualizarCalculoVenda);
-  document.getElementById("vendaPreco")?.addEventListener("input", atualizarCalculoVenda);
-  document.getElementById("vendaPagamento")?.addEventListener("change", atualizarCalculoVenda);
-  document.getElementById("vendaEntrega")?.addEventListener("change", atualizarCalculoVenda);
-  document.getElementById("vendaMotoboyValor")?.addEventListener("input", atualizarCalculoVenda);
-
-  document.getElementById("impressoraBusca")?.addEventListener("input", renderImpressoras);
-  document.getElementById("impressoraFiltroStatus")?.addEventListener("change", renderImpressoras);
-}
-
-
-/* =========================================================
-   LOGIN LOCAL
-   ========================================================= */
-
-const USUARIOS_STORAGE = "baire_usuarios";
-const SESSAO_STORAGE = "baire_usuario_logado";
-
-function salvarUsuarios(){
-  salvarJSON(USUARIOS_STORAGE, usuarios);
-}
-
-function atualizarUsuarioBar(usuario){
-  const bar = document.getElementById("userBar");
-  if(!bar) return;
-
-  if(!usuario){
-    bar.innerHTML = "";
-    return;
-  }
-
-  bar.innerHTML = `
-    <div class="user-avatar">
-      ${escapeHTML((usuario.nome || "U").charAt(0).toUpperCase())}
-    </div>
-    <span>Olá, <strong>${escapeHTML(usuario.nome || "Usuário")}</strong></span>
-    <button class="btn btn-secondary btn-small" type="button" onclick="sairSistema()">Sair</button>
-  `;
-}
-
-function entrarSistema(usuario){
-  localStorage.setItem(SESSAO_STORAGE, JSON.stringify({
-    id: usuario.id,
-    nome: usuario.nome,
-    login: usuario.login,
-    perfil: usuario.perfil
-  }));
-
-  const overlay = document.getElementById("loginOverlay");
-  if(overlay) overlay.classList.add("hidden");
-
-  atualizarUsuarioBar(usuario);
-  atualizarDashboard();
-}
-
-function sairSistema(){
-  localStorage.removeItem(SESSAO_STORAGE);
-
-  const overlay = document.getElementById("loginOverlay");
-  if(overlay) overlay.classList.remove("hidden");
-
-  const login = document.getElementById("loginUsuario");
-  const senha = document.getElementById("loginSenha");
-  const erro = document.getElementById("loginErro");
-
-  if(login) login.value = "";
-  if(senha) senha.value = "";
-  if(erro){
-    erro.classList.add("hidden");
-    erro.textContent = "";
-  }
-
-  atualizarUsuarioBar(null);
-  if(login) login.focus();
-}
-
-function verificarLogin(){
-  carregarDados();
-
-  const usuarioLogado = lerJSON(SESSAO_STORAGE, null);
-
-  if(usuarioLogado){
-    const usuario = usuarios.find(function(u){
-      return String(u.id) === String(usuarioLogado.id) &&
-             u.status === "Ativo";
-    });
-
-    if(usuario){
-      entrarSistema(usuario);
-      return;
-    }
-
-    localStorage.removeItem(SESSAO_STORAGE);
-  }
-
-  const overlay = document.getElementById("loginOverlay");
-  if(overlay) overlay.classList.remove("hidden");
-
-  const loginForm = document.getElementById("loginForm");
-  if(!loginForm) return;
-
-  if(loginForm.dataset.listenerAttached === "1") return;
-  loginForm.dataset.listenerAttached = "1";
-
-  loginForm.addEventListener("submit", function(event){
-    event.preventDefault();
-
-    const loginEl = document.getElementById("loginUsuario");
-    const senhaEl = document.getElementById("loginSenha");
-    const erro = document.getElementById("loginErro");
-
-    const login = loginEl ? loginEl.value.trim() : "";
-    const senha = senhaEl ? senhaEl.value : "";
-
-    const usuario = usuarios.find(function(u){
-      return String(u.login || "").trim().toLowerCase() === login.toLowerCase() &&
-             String(u.senha || "") === String(senha) &&
-             u.status === "Ativo";
-    });
-
-    if(!usuario){
-      if(erro){
-        erro.textContent = "Usuário ou senha inválidos.";
-        erro.classList.remove("hidden");
-      }
-      return;
-    }
-
-    if(erro){
-      erro.classList.add("hidden");
-      erro.textContent = "";
-    }
-
-    entrarSistema(usuario);
-  });
-}
-
-
-/* =========================================================
-   USUÁRIOS
-   ========================================================= */
-
-function novoUsuario(){
-  document.getElementById("usuarioForm").reset();
-  document.getElementById("usuarioIndex").value = "";
-  document.getElementById("usuarioFormTitle").textContent = "Novo Usuário";
-  document.getElementById("usuarioFormPanel").classList.remove("hidden");
-}
-
-function fecharUsuarioForm(){
-  document.getElementById("usuarioFormPanel").classList.add("hidden");
-}
-
-function salvarUsuario(event){
-  event.preventDefault();
-
-  const index = document.getElementById("usuarioIndex").value;
-
-  const nome = document.getElementById("usuarioNome").value.trim();
-  const login = document.getElementById("usuarioLogin").value.trim();
-  const senha = document.getElementById("usuarioSenha").value;
-  const perfil = document.getElementById("usuarioPerfil").value;
-  const status = document.getElementById("usuarioStatus").value;
-
-  if(!nome || !login){
-    alert("Informe nome e usuário.");
-    return;
-  }
-
-  if(index === "" && !senha){
-    alert("Informe uma senha para o novo usuário.");
-    return;
-  }
-
-  const existe = usuarios.some(function(u,i){
-    return u.login.toLowerCase() === login.toLowerCase() &&
-           String(i) !== String(index);
-  });
-
-  if(existe){
-    alert("Este usuário já existe.");
-    return;
-  }
-
-  if(index === ""){
-    usuarios.push({
-      id: Date.now(),
-      nome,
-      login,
-      senha,
-      perfil,
-      status
-    });
-  }else{
-    const u = usuarios[Number(index)];
-
-    u.nome = nome;
-    u.login = login;
-    u.perfil = perfil;
-    u.status = status;
-
-    if(senha){
-      u.senha = senha;
-    }
-  }
-
-  salvarUsuarios();
-  fecharUsuarioForm();
-  renderUsuarios();
-
-  alert("Usuário salvo com sucesso.");
-}
-
-function editarUsuario(index){
-  const u = usuarios[index];
-  if(!u) return;
-
-  document.getElementById("usuarioIndex").value = index;
-  document.getElementById("usuarioNome").value = u.nome || "";
-  document.getElementById("usuarioLogin").value = u.login || "";
-  document.getElementById("usuarioSenha").value = "";
-  document.getElementById("usuarioPerfil").value = u.perfil || "Administrador";
-  document.getElementById("usuarioStatus").value = u.status || "Ativo";
-
-  document.getElementById("usuarioFormTitle").textContent = "Editar Usuário";
-  document.getElementById("usuarioFormPanel").classList.remove("hidden");
-}
-
-function excluirUsuario(index){
-  if(usuarios.length <= 1){
-    alert("O sistema precisa manter pelo menos um usuário.");
-    return;
-  }
-
-  if(!confirm("Excluir este usuário?")) return;
-
-  usuarios.splice(index,1);
-  salvarUsuarios();
-  renderUsuarios();
-}
-
-function renderUsuarios(){
-  const tbody = document.getElementById("usuariosTabela");
-  if(!tbody) return;
-
-  tbody.innerHTML = usuarios.map(function(u,index){
-    return `
-      <tr>
-        <td>${escapeHTML(u.nome)}</td>
-        <td>${escapeHTML(u.login)}</td>
-        <td>${escapeHTML(u.perfil)}</td>
-        <td>
-          <span class="badge ${u.status === "Ativo" ? "badge-green" : "badge-red"}">
-            ${escapeHTML(u.status)}
-          </span>
-        </td>
-        <td>
-          <button class="btn btn-small btn-primary" onclick="editarUsuario(${index})">
-            Editar
-          </button>
-
-          <button class="btn btn-small btn-danger" onclick="excluirUsuario(${index})">
-            Excluir
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-
-/* =========================================================
-   BACKUP
-   ========================================================= */
 
 function exportarBackup(){
   const backup = {
-    data: new Date().toISOString(),
-    clientes,
-    produtos,
-    vendas,
-    ordensServico,
-    orcamentos,
-    locacoes,
-    contas,
-    configuracoes,
-    usuarios
+    versao:"BAIRE-1.0",
+    data:new Date().toISOString(),
+    clientes:clientes,
+    produtos:produtos,
+    vendas:vendas,
+    ordensServico:ordensServico,
+    orcamentos:orcamentos,
+    locacoes:locacoes,
+    contas:contas,
+    configuracoes:configuracoes
   };
 
   const blob = new Blob(
@@ -3226,786 +2884,4400 @@ function exportarBackup(){
   );
 
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement("a");
   a.href = url;
-  a.download = "BAIRE-backup-" +
-    new Date().toISOString().slice(0,10) +
-    ".json";
-
-  document.body.appendChild(a);
+  a.download = "backup-baire-" + new Date().toISOString().slice(0,10) + ".json";
   a.click();
-  a.remove();
-
   URL.revokeObjectURL(url);
 }
 
 function confirmarLimpeza(){
-  const confirmar = confirm(
-    "ATENÇÃO!\n\nIsso apagará clientes, produtos, vendas, assistência, orçamentos, locações, financeiro e configurações deste navegador.\n\nDeseja continuar?"
-  );
+  const palavra = prompt("Digite APAGAR para confirmar a exclusão de todos os dados do sistema.");
 
-  if(!confirmar) return;
+  if(palavra !== "APAGAR"){
+    alert("Operação cancelada.");
+    return;
+  }
 
-  Object.values(STORAGE).forEach(function(chave){
-    localStorage.removeItem(chave);
+  Object.keys(STORAGE).forEach(function(chave){
+    localStorage.removeItem(STORAGE[chave]);
   });
-
-  localStorage.removeItem(USUARIOS_STORAGE);
-
-  alert("Dados apagados. O sistema será recarregado.");
 
   location.reload();
 }
 
+function novoCadastroSimples(modulo){
+  alert("O módulo de " + modulo + " está preparado para a próxima etapa de cadastro detalhado.");
+}
 
 /* =========================================================
-   IMPRESSORAS
+   EVENTOS
    ========================================================= */
+/* =========================================================
+   CONTROLE DE IMPRESSORAS
+========================================================= */
 
 const STORAGE_IMPRESSORAS = "baire_impressoras";
-const STORAGE_HISTORICO_IMPRESSORAS = "baire_historico_impressoras";
 
-let impressoras = [];
-let historicoImpressoras = [];
 
-function carregarImpressoras(){
-  impressoras = lerJSON(STORAGE_IMPRESSORAS, []);
-  historicoImpressoras = lerJSON(STORAGE_HISTORICO_IMPRESSORAS, []);
-}
-
-function novaImpressora(){
-  document.getElementById("impressoraForm").reset();
-
-  document.getElementById("impressoraIndex").value = "";
-
-  document.getElementById("impressoraContadorInicial").value = 0;
-  document.getElementById("impressoraContadorAtual").value = 0;
-  document.getElementById("impressoraToner").value = 100;
-  document.getElementById("impressoraStatus").value = "Ativa";
-
-  preencherClientesSelect("impressoraCliente");
-
-  document.getElementById("impressoraFormTitle").textContent =
-    "Nova Impressora";
-
-  document
-    .getElementById("impressoraFormPanel")
-    .classList.remove("hidden");
-}
-
-function fecharImpressoraForm(){
-  document
-    .getElementById("impressoraFormPanel")
-    .classList.add("hidden");
-}
-
-function salvarImpressora(event){
-  event.preventDefault();
-
-  const index = document.getElementById("impressoraIndex").value;
-
-  const clienteIndex =
-    document.getElementById("impressoraCliente").value;
-
-  const cliente =
-    clienteIndex === ""
-      ? null
-      : clientes[Number(clienteIndex)];
-
-  const impressora = {
-    id:
-      index === ""
-        ? Date.now()
-        : impressoras[Number(index)].id,
-
-    clienteId: cliente ? cliente.id : null,
-
-    clienteNome:
-      cliente
-        ? cliente.nome
-        : "Sem cliente",
-
-    patrimonio:
-      document.getElementById("impressoraPatrimonio").value.trim(),
-
-    marca:
-      document.getElementById("impressoraMarca").value.trim(),
-
-    modelo:
-      document.getElementById("impressoraModelo").value.trim(),
-
-    serie:
-      document.getElementById("impressoraSerie").value.trim(),
-
-    tipo:
-      document.getElementById("impressoraTipo").value,
-
-    ip:
-      document.getElementById("impressoraIP").value.trim(),
-
-    localizacao:
-      document.getElementById("impressoraLocalizacao").value.trim(),
-
-    contadorInicial:
-      numero(
-        document.getElementById("impressoraContadorInicial").value
-      ),
-
-    contadorAtual:
-      numero(
-        document.getElementById("impressoraContadorAtual").value
-      ),
-
-    toner:
-      numero(
-        document.getElementById("impressoraToner").value
-      ),
-
-    ultimoToner:
-      document.getElementById("impressoraUltimoToner").value,
-
-    status:
-      document.getElementById("impressoraStatus").value,
-
-    observacoes:
-      document.getElementById("impressoraObservacoes").value.trim(),
-
-    atualizadoEm:
-      new Date().toISOString()
-  };
-
-  if(!impressora.marca || !impressora.modelo){
-    alert("Informe fabricante e modelo.");
-    return;
+/* =========================================================
+   CATÁLOGO DE IMPRESSORAS / TONERS
+   Fonte: catálogo fornecido pela BAIRE.
+   ========================================================= */
+const CATALOGO_IMPRESSORAS = [
+  {
+    "marca": "HP",
+    "impressora": "HP M1132",
+    "toners": [
+      {
+        "modelo": "CE285a 85a",
+        "rendimento": 1800
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M1212",
+    "toners": [
+      {
+        "modelo": "CB435A CB436A",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "CE285a 85a",
+        "rendimento": 1800
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M1120",
+    "toners": [
+      {
+        "modelo": "CB435A CB436A",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Cb436a Cb436Ab",
+        "rendimento": 1800
+      },
+      {
+        "modelo": "Cb436a Cb436Ab",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 1020",
+    "toners": [
+      {
+        "modelo": "Q2612A 2612A",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Q2612a 12a",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 1022",
+    "toners": [
+      {
+        "modelo": "Q2612A 2612A",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Q2612a 12a",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 1130",
+    "toners": [
+      {
+        "modelo": "CE285a 85a",
+        "rendimento": 1800
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 1312",
+    "toners": [
+      {
+        "modelo": "Cb540A 125A (preto)",
+        "rendimento": 2200
+      },
+      {
+        "modelo": "Cb543A 125A (magenta)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "Cb542A 125A (amarelo)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "Cb541A 125A (ciano)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 3015",
+    "toners": [
+      {
+        "modelo": "Q2612A 2612A",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Q2612a 12a",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 3050",
+    "toners": [
+      {
+        "modelo": "Q2612A 2612A",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Q2612a 12a",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M125",
+    "toners": [
+      {
+        "modelo": "CF283A 83A",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Cf283a 83a",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M127",
+    "toners": [
+      {
+        "modelo": "Cf283a 83a",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M225",
+    "toners": [
+      {
+        "modelo": "CF283A 83A",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Cf283a 83a",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M202",
+    "toners": [
+      {
+        "modelo": "CF283A 83A",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Cf283a 83a",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M203",
+    "toners": [
+      {
+        "modelo": "Cf230X 30X",
+        "rendimento": 3500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M227",
+    "toners": [
+      {
+        "modelo": "Cf230A 30A",
+        "rendimento": 1600
+      },
+      {
+        "modelo": "Cf230X 30X",
+        "rendimento": 3500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M176",
+    "toners": [
+      {
+        "modelo": "Cf353A 130A (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Cf352A 130A (amarelo)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Cf351A 130A (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Cf350A 130A (preto)",
+        "rendimento": 1300
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M177",
+    "toners": [
+      {
+        "modelo": "Cf353A 130A (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Cf352A 130A (amarelo)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Cf351A 130A (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Cf350A 130A (preto)",
+        "rendimento": 1300
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M281",
+    "toners": [
+      {
+        "modelo": "Cf503A 202A (magenta)",
+        "rendimento": 1300
+      },
+      {
+        "modelo": "Cf502A 202A (amarelo)",
+        "rendimento": 1300
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M252",
+    "toners": [
+      {
+        "modelo": "Cf401X 201X (ciano)",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "Cf400X 201X (preto)",
+        "rendimento": 2800
+      },
+      {
+        "modelo": "Cf401A 201A (ciano)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "Cf403A 201A (magenta)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M251",
+    "toners": [
+      {
+        "modelo": "Cf213A 131A (magenta)",
+        "rendimento": 1800
+      },
+      {
+        "modelo": "Cf211A 131A (ciano)",
+        "rendimento": 1800
+      },
+      {
+        "modelo": "Cf210A 131A (preto)",
+        "rendimento": 1600
+      },
+      {
+        "modelo": "Cf212A 131A (amarelo)",
+        "rendimento": 1800
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M276",
+    "toners": [
+      {
+        "modelo": "Cf213A 131A (magenta)",
+        "rendimento": 1800
+      },
+      {
+        "modelo": "Cf211A 131A (ciano)",
+        "rendimento": 1800
+      },
+      {
+        "modelo": "Cf210A 131A (preto)",
+        "rendimento": 1600
+      },
+      {
+        "modelo": "Cf212A 131A (amarelo)",
+        "rendimento": 1800
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M402",
+    "toners": [
+      {
+        "modelo": "CF226X CF226",
+        "rendimento": 9000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M404",
+    "toners": [
+      {
+        "modelo": "Cf258X 58X",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M426",
+    "toners": [
+      {
+        "modelo": "CF226X CF226",
+        "rendimento": 9000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M428",
+    "toners": [
+      {
+        "modelo": "Cf258A 58A",
+        "rendimento": 3000
+      },
+      {
+        "modelo": "Cf258X 58X",
+        "rendimento": 10000
+      },
+      {
+        "modelo": "Cf258A 58A",
+        "rendimento": 3000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M452",
+    "toners": [
+      {
+        "modelo": "Cf411a 410a (ciano)",
+        "rendimento": 2300
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M454",
+    "toners": [
+      {
+        "modelo": "W2023A 414A (magenta)",
+        "rendimento": 2100
+      },
+      {
+        "modelo": "W2022A 414A (amarelo)",
+        "rendimento": 2100
+      },
+      {
+        "modelo": "W2020A 414A (preto)",
+        "rendimento": 2400
+      },
+      {
+        "modelo": "W2021A 414A (ciano)",
+        "rendimento": 2100
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M476",
+    "toners": [
+      {
+        "modelo": "Cf381A 312A (ciano)",
+        "rendimento": 2800
+      },
+      {
+        "modelo": "Cf380A 312A (preto)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "Cf380X 80X (preto)",
+        "rendimento": 4000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M477",
+    "toners": [
+      {
+        "modelo": "Cf413a 410a (magenta)",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "Cf412a 410a (amarelo)",
+        "rendimento": 2300
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M479",
+    "toners": [
+      {
+        "modelo": "W2021A 414A (ciano)",
+        "rendimento": 2100
+      },
+      {
+        "modelo": "W2023A 414A (magenta)",
+        "rendimento": 2100
+      },
+      {
+        "modelo": "W2021A 414A (ciano)",
+        "rendimento": 2100
+      },
+      {
+        "modelo": "W2021X 414X (ciano)",
+        "rendimento": 6000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP P1505",
+    "toners": [
+      {
+        "modelo": "CB435A CB436A",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Cb436a Cb436Ab",
+        "rendimento": 1800
+      },
+      {
+        "modelo": "Cb436a Cb436Ab",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP P2055",
+    "toners": [
+      {
+        "modelo": "Ce505a Ce05a",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "Ce505x Ce05x",
+        "rendimento": 6500
+      },
+      {
+        "modelo": "Ce505x Ce05x",
+        "rendimento": 6900
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP1025",
+    "toners": [
+      {
+        "modelo": "Ce310A 126A (preto)",
+        "rendimento": 1200
+      },
+      {
+        "modelo": "Ce312A 126A (amarelo)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Ce313A 126A (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Ce311A 126A (ciano)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP1215",
+    "toners": [
+      {
+        "modelo": "Cb540A 125A (preto)",
+        "rendimento": 2200
+      },
+      {
+        "modelo": "Cb543A 125A (magenta)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "Cb542A Ce322A (amarelo)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "Cb542A 125A (amarelo)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP1020",
+    "toners": [
+      {
+        "modelo": "Ce310A 126A (preto)",
+        "rendimento": 1200
+      },
+      {
+        "modelo": "Ce312A 126A (amarelo)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Ce313A 126A (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Ce311A 126A (ciano)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP1515",
+    "toners": [
+      {
+        "modelo": "Cb540A 125A (preto)",
+        "rendimento": 2200
+      },
+      {
+        "modelo": "Cb542A Ce322A (amarelo)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "Cb541A 125A (ciano)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP1525",
+    "toners": [
+      {
+        "modelo": "Ce320A 128A (preto)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Ce323A 128A (magenta)",
+        "rendimento": 1300
+      },
+      {
+        "modelo": "Ce322A 128A (amarelo)",
+        "rendimento": 1300
+      },
+      {
+        "modelo": "Ce321A 128A (ciano)",
+        "rendimento": 1300
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP2025",
+    "toners": [
+      {
+        "modelo": "Cc532A 304A (amarelo)",
+        "rendimento": 2800
+      },
+      {
+        "modelo": "Cc531A 304A (ciano)",
+        "rendimento": 2800
+      },
+      {
+        "modelo": "Cc530A 304A (preto)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "Cc533A 304A (magenta)",
+        "rendimento": 2800
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP3525",
+    "toners": [
+      {
+        "modelo": "Ce253A 504A (magenta)",
+        "rendimento": 7000
+      },
+      {
+        "modelo": "Ce252A 504A (amarelo)",
+        "rendimento": 7000
+      },
+      {
+        "modelo": "Ce251A 504A (ciano)",
+        "rendimento": 6000
+      },
+      {
+        "modelo": "Ce250X CP3525 (preto)",
+        "rendimento": 10500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP4025",
+    "toners": [
+      {
+        "modelo": "CE260A CP4025 (preto)",
+        "rendimento": 8000
+      },
+      {
+        "modelo": "Ce263A 648A (magenta)",
+        "rendimento": 11000
+      },
+      {
+        "modelo": "Ce262A 648A (amarelo)",
+        "rendimento": 11000
+      },
+      {
+        "modelo": "Ce261A 648A (ciano)",
+        "rendimento": 10500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CP5525",
+    "toners": [
+      {
+        "modelo": "CE273A 650A (magenta)",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "Ce272A 650A (amarelo)",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "Ce270A 650A (preto)",
+        "rendimento": 13500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CM1415",
+    "toners": [
+      {
+        "modelo": "Ce320A 128A (preto)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Ce323A 128A (magenta)",
+        "rendimento": 1300
+      },
+      {
+        "modelo": "Ce322A 128A (amarelo)",
+        "rendimento": 1300
+      },
+      {
+        "modelo": "Ce321A 128A (ciano)",
+        "rendimento": 1300
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CM2320",
+    "toners": [
+      {
+        "modelo": "Cc530A 304A (preto)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "304A Cp2025 (preto)",
+        "rendimento": 3500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CM3530",
+    "toners": [
+      {
+        "modelo": "Ce250A 504A (preto)",
+        "rendimento": 5000
+      },
+      {
+        "modelo": "Ce253A 504A (magenta)",
+        "rendimento": 7000
+      },
+      {
+        "modelo": "Ce252A 504A (amarelo)",
+        "rendimento": 7000
+      },
+      {
+        "modelo": "Ce251A 504A (ciano)",
+        "rendimento": 6000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP CM4540",
+    "toners": [
+      {
+        "modelo": "CE260A CP4025 (preto)",
+        "rendimento": 8000
+      },
+      {
+        "modelo": "Ce263A 648A (magenta)",
+        "rendimento": 11000
+      },
+      {
+        "modelo": "Ce262A 648A (amarelo)",
+        "rendimento": 11000
+      },
+      {
+        "modelo": "Ce261A 648A (ciano)",
+        "rendimento": 10500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 107A",
+    "toners": [
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 107W",
+    "toners": [
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 135A",
+    "toners": [
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP 135W",
+    "toners": [
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "105A W1105A",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M154",
+    "toners": [
+      {
+        "modelo": "Cf511A Cf531A (ciano)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf512A Cf532A (amarelo)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf510A Cf530A (preto)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf513A Cf533A (magenta)",
+        "rendimento": 900
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M180",
+    "toners": [
+      {
+        "modelo": "Cf511A Cf531A (ciano)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf512A Cf532A (amarelo)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf510A Cf530A (preto)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf513A Cf533A (magenta)",
+        "rendimento": 900
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M181",
+    "toners": [
+      {
+        "modelo": "Cf511A Cf531A (ciano)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf512A Cf532A (amarelo)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf510A Cf530A (preto)",
+        "rendimento": 900
+      },
+      {
+        "modelo": "Cf513A Cf533A (magenta)",
+        "rendimento": 900
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M570",
+    "toners": [
+      {
+        "modelo": "Ce400X 507X (preto)",
+        "rendimento": 10500
+      }
+    ]
+  },
+  {
+    "marca": "HP",
+    "impressora": "HP M575",
+    "toners": [
+      {
+        "modelo": "Ce400X 507X (preto)",
+        "rendimento": 10500
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E120",
+    "toners": [
+      {
+        "modelo": "E120 E120N",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "12026XW E120",
+        "rendimento": 30000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E250",
+    "toners": [
+      {
+        "modelo": "E250A11L E250",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E250X 22G",
+        "rendimento": 30000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E260",
+    "toners": [
+      {
+        "modelo": "E260X22G E260",
+        "rendimento": 30000
+      },
+      {
+        "modelo": "E260A11B E260 (preto)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E260 E360",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E260 E360",
+        "rendimento": 15000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E330",
+    "toners": [
+      {
+        "modelo": "E330 E340",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "E330 E340",
+        "rendimento": 6000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E332",
+    "toners": [
+      {
+        "modelo": "E330 E340",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "E330 E340",
+        "rendimento": 6000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E340",
+    "toners": [
+      {
+        "modelo": "E330 E340",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "E330 E340",
+        "rendimento": 6000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E342",
+    "toners": [
+      {
+        "modelo": "E330 E340",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "E330 E340",
+        "rendimento": 6000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E350",
+    "toners": [
+      {
+        "modelo": "E250A11L E250",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E352H11B E352H11A",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "E250X 22G",
+        "rendimento": 30000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E352",
+    "toners": [
+      {
+        "modelo": "E250A11L E250",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E352H11B E352H11A",
+        "rendimento": 9000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E360",
+    "toners": [
+      {
+        "modelo": "E260A11B E260 (preto)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E260 E360",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E360H11B E360 (preto)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "E260 E360",
+        "rendimento": 15000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark E460",
+    "toners": [
+      {
+        "modelo": "E260A11B E260 (preto)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E260 E360",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E360H11B E360 (preto)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "E260 E360",
+        "rendimento": 15000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS310",
+    "toners": [
+      {
+        "modelo": "504h MS310",
+        "rendimento": 5000
+      },
+      {
+        "modelo": "50F4H00 MS310 (preto)",
+        "rendimento": 5000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS317",
+    "toners": [
+      {
+        "modelo": "24F0009 MS317",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "MS317 MS417",
+        "rendimento": 8500
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS321",
+    "toners": [
+      {
+        "modelo": "56FBH00 MS521",
+        "rendimento": 15000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS410",
+    "toners": [
+      {
+        "modelo": "50F4H00 MS310 (preto)",
+        "rendimento": 5000
+      },
+      {
+        "modelo": "50F4X00 MS410 (preto)",
+        "rendimento": 10000
+      },
+      {
+        "modelo": "504X MS410",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS417",
+    "toners": [
+      {
+        "modelo": "24F0009 MS317",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "24F0006 MS417 (preto)",
+        "rendimento": 8500
+      },
+      {
+        "modelo": "MS317 MS417",
+        "rendimento": 8500
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS510",
+    "toners": [
+      {
+        "modelo": "50F4H00 MS310 (preto)",
+        "rendimento": 5000
+      },
+      {
+        "modelo": "50F4X00 MS410 (preto)",
+        "rendimento": 10000
+      },
+      {
+        "modelo": "50F4U00 MS510/610",
+        "rendimento": 20000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS517",
+    "toners": [
+      {
+        "modelo": "24F0009 MS317",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "24F0006 MS417 (preto)",
+        "rendimento": 8500
+      },
+      {
+        "modelo": "MS317 MS417",
+        "rendimento": 8500
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS610",
+    "toners": [
+      {
+        "modelo": "50F4H00 MS310 (preto)",
+        "rendimento": 5000
+      },
+      {
+        "modelo": "50F4X00 MS410 (preto)",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS617",
+    "toners": [
+      {
+        "modelo": "24F0009 MS317",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "MS317 MS417",
+        "rendimento": 8500
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS621",
+    "toners": [
+      {
+        "modelo": "56F4X00 56FBX",
+        "rendimento": 20000
+      },
+      {
+        "modelo": "56FBH00 56FBH",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "56F4X00 56FBX",
+        "rendimento": 20000
+      },
+      {
+        "modelo": "56FBU00 50FBU",
+        "rendimento": 25000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS622",
+    "toners": [
+      {
+        "modelo": "56F4U00 56FBU00 (preto)",
+        "rendimento": 25000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS810",
+    "toners": [
+      {
+        "modelo": "52D4H00 MS710 (preto)",
+        "rendimento": 25000
+      },
+      {
+        "modelo": "52D0Z00 MX710",
+        "rendimento": 100000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS811",
+    "toners": [
+      {
+        "modelo": "52D4H00 MS710 (preto)",
+        "rendimento": 25000
+      },
+      {
+        "modelo": "52D4X00 MS811 (preto)",
+        "rendimento": 45000
+      },
+      {
+        "modelo": "52D0Z00 MX710",
+        "rendimento": 100000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS812",
+    "toners": [
+      {
+        "modelo": "52D4H00 MS710 (preto)",
+        "rendimento": 25000
+      },
+      {
+        "modelo": "52D4X00 MS811 (preto)",
+        "rendimento": 45000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MS521",
+    "toners": [
+      {
+        "modelo": "56F4X00 56FBX",
+        "rendimento": 20000
+      },
+      {
+        "modelo": "56FB000 56F4000",
+        "rendimento": 6000
+      },
+      {
+        "modelo": "56FBH00 56FBH",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "56F4X00 56FBX",
+        "rendimento": 20000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX310",
+    "toners": [
+      {
+        "modelo": "604H MX310 (preto)",
+        "rendimento": 10000
+      },
+      {
+        "modelo": "604H 60FBH00",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX321",
+    "toners": [
+      {
+        "modelo": "56FBH00 MS521",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "56FBH00 56FBH",
+        "rendimento": 15000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX410",
+    "toners": [
+      {
+        "modelo": "604H MX310 (preto)",
+        "rendimento": 10000
+      },
+      {
+        "modelo": "604H 60FBH00",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX421",
+    "toners": [
+      {
+        "modelo": "56F4X00 56FBX",
+        "rendimento": 20000
+      },
+      {
+        "modelo": "56f0z00 Mx421",
+        "rendimento": 60000
+      },
+      {
+        "modelo": "56F4X00 56FBX",
+        "rendimento": 20000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX511",
+    "toners": [
+      {
+        "modelo": "604H 60FBH00",
+        "rendimento": 10000
+      },
+      {
+        "modelo": "50F0Z00 MX511",
+        "rendimento": 60000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX521",
+    "toners": [
+      {
+        "modelo": "56FBH00 MS521",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "56f0z00 Mx421",
+        "rendimento": 60000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX522",
+    "toners": [
+      {
+        "modelo": "56FBH00 MS521",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "56FBU00 50FBU",
+        "rendimento": 25000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX611",
+    "toners": [
+      {
+        "modelo": "604H 60FBH00",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX622",
+    "toners": [
+      {
+        "modelo": "56FBX00 MX521",
+        "rendimento": 20000
+      },
+      {
+        "modelo": "56f0z00 Mx421",
+        "rendimento": 60000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX710",
+    "toners": [
+      {
+        "modelo": "624h MX710 (preto)",
+        "rendimento": 45000
+      },
+      {
+        "modelo": "52D0Z00 MX710",
+        "rendimento": 100000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX711",
+    "toners": [
+      {
+        "modelo": "624h MX710 (preto)",
+        "rendimento": 45000
+      },
+      {
+        "modelo": "52D0Z00 MX710",
+        "rendimento": 100000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX817",
+    "toners": [
+      {
+        "modelo": "53B4000 MX817 (preto)",
+        "rendimento": 11000
+      },
+      {
+        "modelo": "53B4X00 MX817 (preto)",
+        "rendimento": 45000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark MX818",
+    "toners": [
+      {
+        "modelo": "53B4000 MX817 (preto)",
+        "rendimento": 11000
+      },
+      {
+        "modelo": "53B4X00 MX817 (preto)",
+        "rendimento": 45000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS310",
+    "toners": [
+      {
+        "modelo": "70C8HK0 CS310 (preto)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "70C8HM0 CS310 (magenta)",
+        "rendimento": 3000
+      },
+      {
+        "modelo": "70C8HC0 CS310 (ciano)",
+        "rendimento": 3000
+      },
+      {
+        "modelo": "70C8HY0 CS310 (amarelo)",
+        "rendimento": 3000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS317",
+    "toners": [
+      {
+        "modelo": "71B40Y0 CS317 (amarelo)",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "CS317 CS417 (ciano)",
+        "rendimento": 2300
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS410",
+    "toners": [
+      {
+        "modelo": "70C8HK0 CS310 (preto)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "70C8HM0 CS310 (magenta)",
+        "rendimento": 3000
+      },
+      {
+        "modelo": "70C8H CS310 (preto)",
+        "rendimento": 4000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS417",
+    "toners": [
+      {
+        "modelo": "71B40Y0 CS317 (amarelo)",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "CS317 CS417 (ciano)",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "Cx417de Cs417 (preto)",
+        "rendimento": 2300
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS421",
+    "toners": [
+      {
+        "modelo": "78C40C0 CS421 (ciano)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS510",
+    "toners": [
+      {
+        "modelo": "70C8HK0 CS310 (preto)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "70C8HM0 CS310 (magenta)",
+        "rendimento": 3000
+      },
+      {
+        "modelo": "70C8HC0 CS310 (ciano)",
+        "rendimento": 3000
+      },
+      {
+        "modelo": "70C8HY0 CS310 (amarelo)",
+        "rendimento": 3000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS517",
+    "toners": [
+      {
+        "modelo": "71B40Y0 CS317 (amarelo)",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "CS317 CS417 (ciano)",
+        "rendimento": 2300
+      },
+      {
+        "modelo": "71B4XK0 CS517 (preto)",
+        "rendimento": 8000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS521",
+    "toners": [
+      {
+        "modelo": "78C40C0 CS421 (ciano)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS720",
+    "toners": [
+      {
+        "modelo": "74C40K0 CS720 (preto)",
+        "rendimento": 3000
+      },
+      {
+        "modelo": "74C4SC0 CS720 (ciano)",
+        "rendimento": 7000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CS725",
+    "toners": [
+      {
+        "modelo": "74C4SC0 CS720 (ciano)",
+        "rendimento": 7000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CX310",
+    "toners": [
+      {
+        "modelo": "80C8SM0 CX310 (magenta)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "80C8SK0 CX310 (preto)",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "80C8SC0 CX310 (ciano)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "80C8SY0 CX310 (amarelo)",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CX410",
+    "toners": [
+      {
+        "modelo": "CX410 CX510DN (amarelo)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "CX410 CX510DN (ciano)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "80C8SM0 CX310 (magenta)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "80C8SK0 CX310 (preto)",
+        "rendimento": 2500
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CX417",
+    "toners": [
+      {
+        "modelo": "71B4HM0 CX417DE (magenta)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "71B4HC0 CX417DE (ciano)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "71B4HK0 CX417 (preto)",
+        "rendimento": 6000
+      },
+      {
+        "modelo": "71B4HY0 CX417DE (amarelo)",
+        "rendimento": 3500
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CX421",
+    "toners": [
+      {
+        "modelo": "78C40Y0 CS/CX421 (amarelo)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CX510",
+    "toners": [
+      {
+        "modelo": "80C8SM0 CX310 (magenta)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "80C8SK0 CX310 (preto)",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "80C8SC0 CX310 (ciano)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "80C8SY0 CX310 (amarelo)",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CX522",
+    "toners": [
+      {
+        "modelo": "78C40C0 CS421 (ciano)",
+        "rendimento": 1400
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark CX921",
+    "toners": [
+      {
+        "modelo": "CX921 922 (preto)",
+        "rendimento": 34000
+      },
+      {
+        "modelo": "CX921 922 (amarelo)",
+        "rendimento": 34000
+      },
+      {
+        "modelo": "CX921 922 (ciano)",
+        "rendimento": 34000
+      },
+      {
+        "modelo": "CX921 922 (magenta)",
+        "rendimento": 34000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark X464",
+    "toners": [
+      {
+        "modelo": "E260 E360",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "E260 E360",
+        "rendimento": 15000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark X544",
+    "toners": [
+      {
+        "modelo": "C54X C540H1YG (amarelo)",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "C54X C540H1CG (ciano)",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark X656",
+    "toners": [
+      {
+        "modelo": "T650 T654",
+        "rendimento": 25000
+      },
+      {
+        "modelo": "T654 X656",
+        "rendimento": 36000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark X950",
+    "toners": [
+      {
+        "modelo": "C950 X950 (preto)",
+        "rendimento": 22000
+      },
+      {
+        "modelo": "C950 X950 (ciano)",
+        "rendimento": 22000
+      },
+      {
+        "modelo": "C950 X950 (amarelo)",
+        "rendimento": 22000
+      },
+      {
+        "modelo": "C950 X950 (magenta)",
+        "rendimento": 22000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark C950",
+    "toners": [
+      {
+        "modelo": "C950 X950 (preto)",
+        "rendimento": 22000
+      },
+      {
+        "modelo": "C950 X950 (ciano)",
+        "rendimento": 22000
+      },
+      {
+        "modelo": "C950 X950 (amarelo)",
+        "rendimento": 22000
+      },
+      {
+        "modelo": "C950 X950 (magenta)",
+        "rendimento": 22000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark T650",
+    "toners": [
+      {
+        "modelo": "T650 T654",
+        "rendimento": 25000
+      },
+      {
+        "modelo": "T654 X656",
+        "rendimento": 36000
+      }
+    ]
+  },
+  {
+    "marca": "Lexmark",
+    "impressora": "Lexmark T654",
+    "toners": [
+      {
+        "modelo": "T650 T654",
+        "rendimento": 25000
+      },
+      {
+        "modelo": "T654 X656",
+        "rendimento": 36000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother DCP1602",
+    "toners": [
+      {
+        "modelo": "TN1060 DCP1602",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "TN1060 DCP1602",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother DCP1617",
+    "toners": [
+      {
+        "modelo": "Dr1060 Hl1202",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother DCPL2520",
+    "toners": [
+      {
+        "modelo": "TN660 DCP-L2540",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "TN660 DCPL2540",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother DCPL2540",
+    "toners": [
+      {
+        "modelo": "TN660 DCP-L2540",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "TN660 DCPL2540",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother DCP8080",
+    "toners": [
+      {
+        "modelo": "Dr620 Tn650",
+        "rendimento": 25000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother DCP8112",
+    "toners": [
+      {
+        "modelo": "Dr3440 Hl5452",
+        "rendimento": 30000
+      },
+      {
+        "modelo": "TN720 TN750",
+        "rendimento": 8000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL1202",
+    "toners": [
+      {
+        "modelo": "TN1060 DCP1602",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Dr1060 Hl1202",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL1212",
+    "toners": [
+      {
+        "modelo": "Dr1060 Hl1202",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL-L1222",
+    "toners": [
+      {
+        "modelo": "TN-116 TN116 (preto)",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL2130",
+    "toners": [
+      {
+        "modelo": "TN450 DCP7065",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "TN410 HL2130",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL2140",
+    "toners": [
+      {
+        "modelo": "TN330 DCP7070",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "TN360 DCP7030",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL2270",
+    "toners": [
+      {
+        "modelo": "TN450 DCP7065",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "Dr420 Tn420",
+        "rendimento": 12000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL2540",
+    "toners": [
+      {
+        "modelo": "TN2340 HL2540",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "Dr2340 Tn2340",
+        "rendimento": 12000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL3140",
+    "toners": [
+      {
+        "modelo": "TN221M TN221 (magenta)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN221Y TN221 (amarelo)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN225Y TN225 (amarelo)",
+        "rendimento": 2200
+      },
+      {
+        "modelo": "TN225M TN225 (magenta)",
+        "rendimento": 2200
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL3170",
+    "toners": [
+      {
+        "modelo": "TN221M TN221 (magenta)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN221C TN221 (ciano)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN221Y TN221 (amarelo)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN221BK TN221 (preto)",
+        "rendimento": 2500
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL4140",
+    "toners": [
+      {
+        "modelo": "TN315BK TN315 (preto)",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "TN315C TN315 (ciano)",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL4150",
+    "toners": [
+      {
+        "modelo": "TN315BK TN315 (preto)",
+        "rendimento": 2500
+      },
+      {
+        "modelo": "TN315C TN315 (ciano)",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "TN310Y TN310 (amarelo)",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother L2360",
+    "toners": [
+      {
+        "modelo": "TN2340 HL2540",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL-L8350",
+    "toners": [
+      {
+        "modelo": "TN316BK TN316 (preto)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "TN316Y TN316 (amarelo)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "TN316C TN316 (ciano)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "TN329Y TN329 (amarelo)",
+        "rendimento": 6000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother HL-L8360",
+    "toners": [
+      {
+        "modelo": "TN419BK TN419 (preto)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "TN419C TN419 (ciano)",
+        "rendimento": 9000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother MFC9130",
+    "toners": [
+      {
+        "modelo": "TN221M TN221 (magenta)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN221C TN221 (ciano)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN221Y TN221 (amarelo)",
+        "rendimento": 1400
+      },
+      {
+        "modelo": "TN221BK TN221 (preto)",
+        "rendimento": 2500
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother MFC-L2700",
+    "toners": [
+      {
+        "modelo": "TN660 DCP-L2540",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "TN2370 HL-L2360",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother MFC-L2720",
+    "toners": [
+      {
+        "modelo": "TN660 DCP-L2540",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "TN2370 HL-L2360",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother MFC-L2740",
+    "toners": [
+      {
+        "modelo": "TN660 DCP-L2540",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "TN2370 HL-L2360",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother L2700",
+    "toners": [
+      {
+        "modelo": "TN660 DCPL2540",
+        "rendimento": 2600
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother L2740",
+    "toners": [
+      {
+        "modelo": "TN660 DCPL2540",
+        "rendimento": 2600
+      },
+      {
+        "modelo": "Dr2340 Tn2340",
+        "rendimento": 12000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother L8610",
+    "toners": [
+      {
+        "modelo": "TN416 TN421 (amarelo)",
+        "rendimento": 6500
+      },
+      {
+        "modelo": "TN419BK TN419 (preto)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "TN419Y TN419 (amarelo)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "TN419M TN419 (magenta)",
+        "rendimento": 9000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother L8900",
+    "toners": [
+      {
+        "modelo": "TN419BK TN419 (preto)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "TN419Y TN419 (amarelo)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "TN419M TN419 (magenta)",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "TN419C TN419 (ciano)",
+        "rendimento": 9000
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother L8600",
+    "toners": [
+      {
+        "modelo": "TN316Y TN316 (amarelo)",
+        "rendimento": 3500
+      },
+      {
+        "modelo": "TN316C TN316 (ciano)",
+        "rendimento": 3500
+      }
+    ]
+  },
+  {
+    "marca": "Brother",
+    "impressora": "Brother L8400",
+    "toners": [
+      {
+        "modelo": "TN316Y TN316 (amarelo)",
+        "rendimento": 3500
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung ML1665",
+    "toners": [
+      {
+        "modelo": "Mlt-D104s D104",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung ML1860",
+    "toners": [
+      {
+        "modelo": "Mlt-D104s D104",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung ML4510",
+    "toners": [
+      {
+        "modelo": "D307L D307",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "MLT D307E",
+        "rendimento": 20000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung ML5012",
+    "toners": [
+      {
+        "modelo": "D307L D307",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "MLT D307E",
+        "rendimento": 20000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung SCX3200",
+    "toners": [
+      {
+        "modelo": "Mlt-D104s D104",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung SCX4600",
+    "toners": [
+      {
+        "modelo": "Mlt D105s",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung M2020",
+    "toners": [
+      {
+        "modelo": "Mlt D111s",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung M2825",
+    "toners": [
+      {
+        "modelo": "MLT D116S",
+        "rendimento": 2000
+      },
+      {
+        "modelo": "Mlt D116L",
+        "rendimento": 3000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung M2835",
+    "toners": [
+      {
+        "modelo": "Mlt R116",
+        "rendimento": 9000
+      },
+      {
+        "modelo": "MLT D116S",
+        "rendimento": 2000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung M4025",
+    "toners": [
+      {
+        "modelo": "Mlt D204U",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "Mlt-D204S D204",
+        "rendimento": 5000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung M4070",
+    "toners": [
+      {
+        "modelo": "MLT-D203U D203",
+        "rendimento": 15000
+      },
+      {
+        "modelo": "MLTD203E D203",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung M4080",
+    "toners": [
+      {
+        "modelo": "MLTD201L D201",
+        "rendimento": 20000
+      },
+      {
+        "modelo": "MLTD201S D201",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP310",
+    "toners": [
+      {
+        "modelo": "Clt M409s (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt K409s (preto)",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Clt C409s (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt Y409s (amarelo)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP315",
+    "toners": [
+      {
+        "modelo": "Clt M409s (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt K409s (preto)",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Clt C409s (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt Y409s (amarelo)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP320",
+    "toners": [
+      {
+        "modelo": "Clt Y407s (amarelo)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt M407s (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt K407s (preto)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt C407s (ciano)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP325",
+    "toners": [
+      {
+        "modelo": "Clt Y407s (amarelo)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt M407s (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt K407s (preto)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt C407s (ciano)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP360",
+    "toners": [
+      {
+        "modelo": "Clt C406s (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt Y406s (amarelo)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt K406s (preto)",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP365",
+    "toners": [
+      {
+        "modelo": "Clt C406s (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt M406s (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt K406s (preto)",
+        "rendimento": 1500
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP620",
+    "toners": [
+      {
+        "modelo": "Clt M508L (magenta)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "Clt K508L (preto)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "Clt Y508L (amarelo)",
+        "rendimento": 4000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLP670",
+    "toners": [
+      {
+        "modelo": "Clt M508L (magenta)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "Clt K508L (preto)",
+        "rendimento": 4000
+      },
+      {
+        "modelo": "Clt Y508L (amarelo)",
+        "rendimento": 4000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLX3170",
+    "toners": [
+      {
+        "modelo": "Clt K409s (preto)",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Clt C409s (ciano)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung CLX3185",
+    "toners": [
+      {
+        "modelo": "Clt K407s (preto)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt C407s (ciano)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung C430",
+    "toners": [
+      {
+        "modelo": "Clt K404s (preto)",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Clt M404s (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "CLT-C404S C430 (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt Y404s (amarelo)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Samsung",
+    "impressora": "Samsung C480",
+    "toners": [
+      {
+        "modelo": "Clt K404s (preto)",
+        "rendimento": 1500
+      },
+      {
+        "modelo": "Clt M404s (magenta)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "CLT-C404S C430 (ciano)",
+        "rendimento": 1000
+      },
+      {
+        "modelo": "Clt Y404s (amarelo)",
+        "rendimento": 1000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera FS1020",
+    "toners": [
+      {
+        "modelo": "TK1112 FS1040",
+        "rendimento": 3000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera FS1040",
+    "toners": [
+      {
+        "modelo": "TK1112 FS1040",
+        "rendimento": 3000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera FS1100",
+    "toners": [
+      {
+        "modelo": "TK137 TK137",
+        "rendimento": 7000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera FS1320",
+    "toners": [
+      {
+        "modelo": "TK172 TK170",
+        "rendimento": 7200
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera FS3040",
+    "toners": [
+      {
+        "modelo": "TK352 TK350",
+        "rendimento": 15000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera FS4020",
+    "toners": [
+      {
+        "modelo": "TK362 TK360",
+        "rendimento": 20000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera FS4200",
+    "toners": [
+      {
+        "modelo": "TK3122 TK3122",
+        "rendimento": 21000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera M2035",
+    "toners": [
+      {
+        "modelo": "TK1147 1035",
+        "rendimento": 12000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera M3655",
+    "toners": [
+      {
+        "modelo": "TK3182 P3055 (preto)",
+        "rendimento": 21000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera P3055",
+    "toners": [
+      {
+        "modelo": "TK3182 P3055 (preto)",
+        "rendimento": 21000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera P6021",
+    "toners": [
+      {
+        "modelo": "TK582M TK582 (magenta)",
+        "rendimento": 2800
+      },
+      {
+        "modelo": "TK TK582 (preto)",
+        "rendimento": 3500
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera C5150",
+    "toners": [
+      {
+        "modelo": "TK582Y TK582 (amarelo)",
+        "rendimento": 2800
+      },
+      {
+        "modelo": "TK582C TK582 (ciano)",
+        "rendimento": 2800
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera C5300",
+    "toners": [
+      {
+        "modelo": "TK562C C5300 (ciano)",
+        "rendimento": 10000
+      }
+    ]
+  },
+  {
+    "marca": "Kyocera",
+    "impressora": "Kyocera C5350",
+    "toners": [
+      {
+        "modelo": "TK562C C5300 (ciano)",
+        "rendimento": 10000
+      }
+    ]
   }
+];
 
-  if(index === ""){
-    impressoras.push(impressora);
-  }else{
-    impressoras[Number(index)] = impressora;
-  }
-
-  salvarJSON(STORAGE_IMPRESSORAS, impressoras);
-
-  fecharImpressoraForm();
-
-  renderImpressoras();
-
-  alert("Impressora salva com sucesso.");
+function normalizarTextoCatalogo(valor){
+    return String(valor || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
-function editarImpressora(index){
-  const p = impressoras[index];
-  if(!p) return;
-
-  document.getElementById("impressoraIndex").value = index;
-
-  const clienteIndex =
-    clientes.findIndex(c => c.id === p.clienteId);
-
-  preencherClientesSelect("impressoraCliente");
-
-  document.getElementById("impressoraCliente").value =
-    clienteIndex >= 0 ? clienteIndex : "";
-
-  document.getElementById("impressoraPatrimonio").value =
-    p.patrimonio || "";
-
-  document.getElementById("impressoraMarca").value =
-    p.marca || "";
-
-  document.getElementById("impressoraModelo").value =
-    p.modelo || "";
-
-  document.getElementById("impressoraSerie").value =
-    p.serie || "";
-
-  document.getElementById("impressoraTipo").value =
-    p.tipo || "Laser";
-
-  document.getElementById("impressoraIP").value =
-    p.ip || "";
-
-  document.getElementById("impressoraLocalizacao").value =
-    p.localizacao || "";
-
-  document.getElementById("impressoraContadorInicial").value =
-    p.contadorInicial || 0;
-
-  document.getElementById("impressoraContadorAtual").value =
-    p.contadorAtual || 0;
-
-  document.getElementById("impressoraToner").value =
-    p.toner ?? 100;
-
-  document.getElementById("impressoraUltimoToner").value =
-    p.ultimoToner || "";
-
-  document.getElementById("impressoraStatus").value =
-    p.status || "Ativa";
-
-  document.getElementById("impressoraObservacoes").value =
-    p.observacoes || "";
-
-  document.getElementById("impressoraFormTitle").textContent =
-    "Editar Impressora";
-
-  document
-    .getElementById("impressoraFormPanel")
-    .classList.remove("hidden");
+function formatarRendimentoCatalogo(valor){
+    const n = Number(valor || 0);
+    return n > 0 ? n.toLocaleString("pt-BR") + " impressões" : "Não informado";
 }
 
-function excluirImpressora(index){
-  if(!confirm("Excluir esta impressora?")) return;
-
-  impressoras.splice(index,1);
-
-  salvarJSON(
-    STORAGE_IMPRESSORAS,
-    impressoras
-  );
-
-  renderImpressoras();
-}
-
-function renderImpressoras(){
-  const tbody =
-    document.getElementById("impressorasTabela");
-
-  if(!tbody) return;
-
-  const busca =
-    (
-      document.getElementById("impressoraBusca")?.value || ""
-    ).toLowerCase();
-
-  const filtro =
-    document.getElementById("impressoraFiltroStatus")?.value || "";
-
-  const lista =
-    impressoras.filter(function(p){
-
-      const texto = [
-        p.patrimonio,
-        p.clienteNome,
-        p.marca,
-        p.modelo,
-        p.serie
-      ]
-      .join(" ")
-      .toLowerCase();
-
-      const bateBusca =
-        texto.includes(busca);
-
-      const bateStatus =
-        !filtro ||
-        p.status === filtro;
-
-      return bateBusca && bateStatus;
+function renderCatalogoImpressoras(){
+    const tbody = document.getElementById("catalogoImpressorasTabela");
+    if(!tbody) return;
+    const busca = normalizarTextoCatalogo(document.getElementById("catalogoImpressorasBusca")?.value || "");
+    const lista = CATALOGO_IMPRESSORAS.filter(function(item){
+        if(!busca) return true;
+        const texto = [item.marca,item.impressora].concat(item.toners.map(function(t){return t.modelo;})).join(" ");
+        return normalizarTextoCatalogo(texto).includes(busca);
     });
-
-  const total =
-    impressoras.length;
-
-  const ativas =
-    impressoras.filter(
-      p => p.status === "Ativa"
-    ).length;
-
-  const manutencao =
-    impressoras.filter(
-      p => p.status === "Em manutenção"
-    ).length;
-
-  const paginas =
-    impressoras.reduce(function(total,p){
-      return total +
-        Math.max(
-          0,
-          numero(p.contadorAtual) -
-          numero(p.contadorInicial)
-        );
-    },0);
-
-  document.getElementById("impTotal").textContent = total;
-  document.getElementById("impAtivas").textContent = ativas;
-  document.getElementById("impManutencao").textContent = manutencao;
-  document.getElementById("impPaginas").textContent = paginas.toLocaleString("pt-BR");
-
-  if(lista.length === 0){
-    tbody.innerHTML =
-      '<tr><td colspan="9" class="empty">Nenhuma impressora encontrada.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML =
-    lista.map(function(p){
-
-      const index =
-        impressoras.indexOf(p);
-
-      const paginasEquipamento =
-        Math.max(
-          0,
-          numero(p.contadorAtual) -
-          numero(p.contadorInicial)
-        );
-
-      let tonerClass = "badge-green";
-
-      if(numero(p.toner) <= 20){
-        tonerClass = "badge-red";
-      }else if(numero(p.toner) <= 40){
-        tonerClass = "badge-yellow";
-      }
-
-      let statusClass = "badge-green";
-
-      if(p.status === "Em manutenção"){
-        statusClass = "badge-yellow";
-      }else if(
-        p.status === "Parada" ||
-        p.status === "Baixada"
-      ){
-        statusClass = "badge-red";
-      }
-
-      return `
-        <tr>
-
-          <td>
-            <strong>
-              ${escapeHTML(p.patrimonio || "-")}
-            </strong>
-          </td>
-
-          <td>
-            ${escapeHTML(p.clienteNome || "Sem cliente")}
-          </td>
-
-          <td>
-            ${escapeHTML(p.marca || "")}
-            ${escapeHTML(p.modelo || "")}
-          </td>
-
-          <td>
-            ${escapeHTML(p.serie || "-")}
-          </td>
-
-          <td>
-            ${numero(p.contadorAtual).toLocaleString("pt-BR")}
-          </td>
-
-          <td>
-            ${paginasEquipamento.toLocaleString("pt-BR")}
-          </td>
-
-          <td>
-            <span class="badge ${tonerClass}">
-              ${numero(p.toner)}%
-            </span>
-          </td>
-
-          <td>
-            <span class="badge ${statusClass}">
-              ${escapeHTML(p.status)}
-            </span>
-          </td>
-
-          <td>
-
-            <button
-              class="btn btn-small btn-primary"
-              onclick="editarImpressora(${index})">
-              Editar
-            </button>
-
-            <button
-              class="btn btn-small btn-secondary"
-              onclick="abrirHistoricoImpressora(${index})">
-              Histórico
-            </button>
-
-            <button
-              class="btn btn-small btn-danger"
-              onclick="excluirImpressora(${index})">
-              Excluir
-            </button>
-
-          </td>
-
-        </tr>
-      `;
-
+    if(!lista.length){
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhum modelo encontrado no catálogo.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = lista.map(function(item){
+        const i = CATALOGO_IMPRESSORAS.indexOf(item);
+        const tonerHtml = item.toners.map(function(t){return '<div style="margin-bottom:6px"><strong>'+escapeHTML(t.modelo)+'</strong></div>';}).join("");
+        const rendimentoHtml = item.toners.map(function(t){return '<div style="margin-bottom:6px">'+formatarRendimentoCatalogo(t.rendimento)+'</div>';}).join("");
+        return '<tr><td><strong>'+escapeHTML(item.marca)+'</strong></td><td><strong>'+escapeHTML(item.impressora)+'</strong></td><td>'+tonerHtml+'</td><td>'+rendimentoHtml+'</td><td><button class="btn btn-secondary btn-small" type="button" onclick="usarModeloCatalogo('+i+')">Usar modelo</button></td></tr>';
     }).join("");
 }
 
-let impressoraHistoricoAtual = null;
+function usarModeloCatalogo(index){
+    const item = CATALOGO_IMPRESSORAS[index];
+    if(!item) return;
+    const form = document.getElementById("impressoraForm");
+    const panel = document.getElementById("impressoraFormPanel");
+    if(!form || !panel) return;
+    form.reset();
+    document.getElementById("impressoraIndex").value = "";
+    document.getElementById("impressoraMarca").value = item.marca || "";
+    document.getElementById("impressoraModelo").value = item.impressora || "";
+    document.getElementById("impressoraContadorInicial").value = 0;
+    document.getElementById("impressoraContadorAtual").value = 0;
+    document.getElementById("impressoraToner").value = 100;
+    document.getElementById("impressoraStatus").value = "Ativa";
+    document.getElementById("impressoraFormTitle").textContent = "Nova Impressora — modelo do catálogo";
+    const obs = document.getElementById("impressoraObservacoes");
+    if(obs){obs.value="Catálogo: "+item.toners.map(function(x){return x.modelo+" — "+formatarRendimentoCatalogo(x.rendimento);}).join(" | ");}
+    preencherClientesSelect("impressoraCliente");
+    panel.classList.remove("hidden");
+    panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+let impressoras = [];
+
+let impressoraHistoricoIndex = null;
+
+
+/* =========================
+   CARREGAR IMPRESSORAS
+========================= */
+
+function carregarImpressoras(){
+
+    try{
+
+        const dados =
+            localStorage.getItem(
+                STORAGE_IMPRESSORAS
+            );
+
+        impressoras =
+            dados
+                ? JSON.parse(dados)
+                : [];
+
+    }catch(e){
+
+        console.error(
+            "Erro ao carregar impressoras:",
+            e
+        );
+
+        impressoras = [];
+
+    }
+
+}
+
+
+/* =========================
+   SALVAR IMPRESSORAS
+========================= */
+
+function salvarImpressoras(){
+
+    localStorage.setItem(
+        STORAGE_IMPRESSORAS,
+        JSON.stringify(impressoras)
+    );
+
+}
+
+
+/* =========================
+   NOVA IMPRESSORA
+========================= */
+
+function novaImpressora(){
+
+    const form =
+        document.getElementById(
+            "impressoraForm"
+        );
+
+    if(!form){
+        return;
+    }
+
+    form.reset();
+
+    document.getElementById(
+        "impressoraIndex"
+    ).value = "";
+
+    document.getElementById(
+        "impressoraContadorInicial"
+    ).value = 0;
+
+    document.getElementById(
+        "impressoraContadorAtual"
+    ).value = 0;
+
+    document.getElementById(
+        "impressoraToner"
+    ).value = 100;
+
+    document.getElementById(
+        "impressoraStatus"
+    ).value = "Ativa";
+
+    document.getElementById(
+        "impressoraFormTitle"
+    ).textContent =
+        "Nova Impressora";
+
+    preencherClientesSelect(
+        "impressoraCliente"
+    );
+
+    document.getElementById(
+        "impressoraFormPanel"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =========================
+   FECHAR FORMULÁRIO
+========================= */
+
+function fecharImpressoraForm(){
+
+    document.getElementById(
+        "impressoraFormPanel"
+    ).classList.add(
+        "hidden"
+    );
+
+}
+
+
+/* =========================
+   SALVAR IMPRESSORA
+========================= */
+
+function salvarImpressora(event){
+
+    event.preventDefault();
+
+    const index =
+        document.getElementById(
+            "impressoraIndex"
+        ).value;
+
+
+    const clienteIndex =
+        document.getElementById(
+            "impressoraCliente"
+        ).value;
+
+
+    const cliente =
+        clienteIndex === ""
+            ? null
+            : clientes[
+                Number(clienteIndex)
+              ];
+
+
+    const contadorInicial =
+        Math.max(
+            0,
+            numero(
+                document.getElementById(
+                    "impressoraContadorInicial"
+                ).value
+            )
+        );
+
+
+    const contadorAtual =
+        Math.max(
+            contadorInicial,
+            numero(
+                document.getElementById(
+                    "impressoraContadorAtual"
+                ).value
+            )
+        );
+
+
+    const impressora = {
+
+        id:
+            index === ""
+                ? Date.now()
+                : impressoras[
+                    Number(index)
+                  ].id,
+
+        clienteId:
+            cliente
+                ? cliente.id
+                : null,
+
+        clienteNome:
+            cliente
+                ? cliente.nome
+                : "Sem cliente",
+
+        patrimonio:
+            document.getElementById(
+                "impressoraPatrimonio"
+            ).value.trim(),
+
+        marca:
+            document.getElementById(
+                "impressoraMarca"
+            ).value.trim(),
+
+        modelo:
+            document.getElementById(
+                "impressoraModelo"
+            ).value.trim(),
+
+        serie:
+            document.getElementById(
+                "impressoraSerie"
+            ).value.trim(),
+
+        tipo:
+            document.getElementById(
+                "impressoraTipo"
+            ).value,
+
+        ip:
+            document.getElementById(
+                "impressoraIP"
+            ).value.trim(),
+
+        localizacao:
+            document.getElementById(
+                "impressoraLocalizacao"
+            ).value.trim(),
+
+        contadorInicial:
+            contadorInicial,
+
+        contadorAtual:
+            contadorAtual,
+
+        toner:
+            Math.min(
+                100,
+                Math.max(
+                    0,
+                    numero(
+                        document.getElementById(
+                            "impressoraToner"
+                        ).value
+                    )
+                )
+            ),
+
+        ultimoToner:
+            document.getElementById(
+                "impressoraUltimoToner"
+            ).value,
+
+        status:
+            document.getElementById(
+                "impressoraStatus"
+            ).value,
+
+        observacoes:
+            document.getElementById(
+                "impressoraObservacoes"
+            ).value.trim(),
+
+        historico:
+            index === ""
+                ? []
+                : (
+                    impressoras[
+                        Number(index)
+                    ].historico || []
+                )
+
+    };
+
+
+    if(
+        !impressora.marca ||
+        !impressora.modelo
+    ){
+
+        alert(
+            "Informe a marca e o modelo da impressora."
+        );
+
+        return;
+
+    }
+
+
+    if(index === ""){
+
+        impressoras.push(
+            impressora
+        );
+
+    }else{
+
+        impressoras[
+            Number(index)
+        ] = impressora;
+
+    }
+
+
+    salvarImpressoras();
+
+    fecharImpressoraForm();
+
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+
+    alert(
+        "Impressora salva com sucesso."
+    );
+
+}
+
+
+/* =========================
+   EDITAR
+========================= */
+
+function editarImpressora(index){
+
+    const p =
+        impressoras[index];
+
+    if(!p){
+        return;
+    }
+
+
+    preencherClientesSelect(
+        "impressoraCliente"
+    );
+
+
+    document.getElementById(
+        "impressoraIndex"
+    ).value = index;
+
+
+    const clienteIndex =
+        clientes.findIndex(
+            function(cliente){
+
+                return String(cliente.id) ===
+                       String(p.clienteId);
+
+            }
+        );
+
+
+    document.getElementById(
+        "impressoraCliente"
+    ).value =
+        clienteIndex >= 0
+            ? clienteIndex
+            : "";
+
+
+    document.getElementById(
+        "impressoraPatrimonio"
+    ).value =
+        p.patrimonio || "";
+
+
+    document.getElementById(
+        "impressoraMarca"
+    ).value =
+        p.marca || "";
+
+
+    document.getElementById(
+        "impressoraModelo"
+    ).value =
+        p.modelo || "";
+
+
+    document.getElementById(
+        "impressoraSerie"
+    ).value =
+        p.serie || "";
+
+
+    document.getElementById(
+        "impressoraTipo"
+    ).value =
+        p.tipo || "Laser";
+
+
+    document.getElementById(
+        "impressoraIP"
+    ).value =
+        p.ip || "";
+
+
+    document.getElementById(
+        "impressoraLocalizacao"
+    ).value =
+        p.localizacao || "";
+
+
+    document.getElementById(
+        "impressoraContadorInicial"
+    ).value =
+        p.contadorInicial || 0;
+
+
+    document.getElementById(
+        "impressoraContadorAtual"
+    ).value =
+        p.contadorAtual || 0;
+
+
+    document.getElementById(
+        "impressoraToner"
+    ).value =
+        p.toner ?? 100;
+
+
+    document.getElementById(
+        "impressoraUltimoToner"
+    ).value =
+        p.ultimoToner || "";
+
+
+    document.getElementById(
+        "impressoraStatus"
+    ).value =
+        p.status || "Ativa";
+
+
+    document.getElementById(
+        "impressoraObservacoes"
+    ).value =
+        p.observacoes || "";
+
+
+    document.getElementById(
+        "impressoraFormTitle"
+    ).textContent =
+        "Editar Impressora";
+
+
+    document.getElementById(
+        "impressoraFormPanel"
+    ).classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =========================
+   EXCLUIR
+========================= */
+
+function excluirImpressora(index){
+
+    const p =
+        impressoras[index];
+
+    if(!p){
+        return;
+    }
+
+
+    if(
+        !confirm(
+            "Deseja realmente excluir esta impressora?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    impressoras.splice(
+        index,
+        1
+    );
+
+
+    salvarImpressoras();
+
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+
+}
+
+
+/* =========================
+   STATUS VISUAL
+========================= */
+
+function badgeStatusImpressora(status){
+
+    if(status === "Ativa"){
+
+        return `
+            <span class="badge badge-green">
+                ● Ativa
+            </span>
+        `;
+
+    }
+
+
+    if(status === "Em manutenção"){
+
+        return `
+            <span class="badge badge-yellow">
+                🔧 Manutenção
+            </span>
+        `;
+
+    }
+
+
+    if(status === "Parada"){
+
+        return `
+            <span class="badge badge-red">
+                ⚠ Parada
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="badge badge-red">
+            Baixada
+        </span>
+    `;
+
+}
+
+
+/* =========================
+   TONER VISUAL
+========================= */
+
+function badgeTonerImpressora(toner){
+
+    toner =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                numero(toner)
+            )
+        );
+
+
+    if(toner <= 10){
+
+        return `
+            <span class="badge badge-red">
+                ${toner}%
+            </span>
+        `;
+
+    }
+
+
+    if(toner <= 25){
+
+        return `
+            <span class="badge badge-yellow">
+                ${toner}%
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="badge badge-green">
+            ${toner}%
+        </span>
+    `;
+
+}
+
+
+/* =========================
+   RENDERIZAR IMPRESSORAS
+========================= */
+
+function renderImpressoras(){
+
+    const tabela =
+        document.getElementById(
+            "impressorasTabela"
+        );
+
+
+    if(!tabela){
+        return;
+    }
+
+
+    const busca =
+        String(
+            document.getElementById(
+                "impressoraBusca"
+            )?.value || ""
+        ).toLowerCase();
+
+
+    const filtro =
+        document.getElementById(
+            "impressoraFiltroStatus"
+        )?.value || "";
+
+
+    const lista =
+        impressoras.filter(
+            function(p){
+
+                const texto = [
+
+                    p.patrimonio,
+                    p.clienteNome,
+                    p.marca,
+                    p.modelo,
+                    p.serie,
+                    p.ip,
+                    p.localizacao
+
+                ]
+                .join(" ")
+                .toLowerCase();
+
+
+                const encontrou =
+                    texto.includes(
+                        busca
+                    );
+
+
+                const statusOK =
+                    !filtro ||
+                    p.status === filtro;
+
+
+                return
+                    encontrou &&
+                    statusOK;
+
+            }
+        );
+
+
+    if(lista.length === 0){
+
+        tabela.innerHTML = `
+            <tr>
+                <td
+                    colspan="9"
+                    class="empty">
+
+                    Nenhuma impressora
+                    encontrada.
+
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    tabela.innerHTML =
+        lista.map(
+            function(p){
+
+                const index =
+                    impressoras.indexOf(
+                        p
+                    );
+
+
+                const paginas =
+                    Math.max(
+                        0,
+                        numero(
+                            p.contadorAtual
+                        ) -
+                        numero(
+                            p.contadorInicial
+                        )
+                    );
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                ${
+                                    escapeHTML(
+                                        p.patrimonio ||
+                                        "-"
+                                    )
+                                }
+                            </strong>
+                        </td>
+
+
+                        <td>
+                            ${
+                                escapeHTML(
+                                    p.clienteNome ||
+                                    "Sem cliente"
+                                )
+                            }
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                ${
+                                    escapeHTML(
+                                        p.marca
+                                    )
+                                }
+                            </strong>
+
+                            <br>
+
+                            <small>
+                                ${
+                                    escapeHTML(
+                                        p.modelo
+                                    )
+                                }
+                            </small>
+
+                        </td>
+
+
+                        <td>
+                            ${
+                                escapeHTML(
+                                    p.serie ||
+                                    "-"
+                                )
+                            }
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                numero(
+                                    p.contadorAtual
+                                ).toLocaleString(
+                                    "pt-BR"
+                                )
+                            }
+
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                ${
+                                    paginas.toLocaleString(
+                                        "pt-BR"
+                                    )
+                                }
+                            </strong>
+
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                badgeTonerImpressora(
+                                    p.toner
+                                )
+                            }
+
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                badgeStatusImpressora(
+                                    p.status
+                                )
+                            }
+
+                        </td>
+
+
+                        <td>
+
+                            <div
+                                style="
+                                    display:flex;
+                                    gap:5px;
+                                    flex-wrap:wrap;
+                                ">
+
+                                <button
+                                    class="btn btn-small btn-primary"
+                                    onclick="editarImpressora(${index})">
+
+                                    Editar
+
+                                </button>
+
+
+                                <button
+                                    class="btn btn-small btn-success"
+                                    onclick="abrirHistoricoImpressora(${index})">
+
+                                    Contador
+
+                                </button>
+
+
+                                <button
+                                    class="btn btn-small btn-danger"
+                                    onclick="excluirImpressora(${index})">
+
+                                    Excluir
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        )
+        .join("");
+
+}
+
+
+/* =========================
+   RESUMO
+========================= */
+
+function atualizarResumoImpressoras(){
+
+    const total =
+        impressoras.length;
+
+
+    const ativas =
+        impressoras.filter(
+            function(p){
+
+                return p.status ===
+                       "Ativa";
+
+            }
+        ).length;
+
+
+    const manutencao =
+        impressoras.filter(
+            function(p){
+
+                return p.status ===
+                       "Em manutenção";
+
+            }
+        ).length;
+
+
+    const paginas =
+        impressoras.reduce(
+            function(total,p){
+
+                return total +
+                    Math.max(
+                        0,
+                        numero(
+                            p.contadorAtual
+                        ) -
+                        numero(
+                            p.contadorInicial
+                        )
+                    );
+
+            },
+            0
+        );
+
+
+    document.getElementById(
+        "impTotal"
+    ).textContent =
+        total;
+
+
+    document.getElementById(
+        "impAtivas"
+    ).textContent =
+        ativas;
+
+
+    document.getElementById(
+        "impManutencao"
+    ).textContent =
+        manutencao;
+
+
+    document.getElementById(
+        "impPaginas"
+    ).textContent =
+        paginas.toLocaleString(
+            "pt-BR"
+        );
+
+}
+
+
+/* =========================
+   HISTÓRICO
+========================= */
 
 function abrirHistoricoImpressora(index){
 
-  const p = impressoras[index];
+    const p =
+        impressoras[index];
 
-  if(!p) return;
+    if(!p){
+        return;
+    }
 
-  impressoraHistoricoAtual = index;
 
-  document.getElementById("historicoImpressoraTitulo").textContent =
-    (
-      p.patrimonio
-        ? p.patrimonio + " - "
-        : ""
-    ) +
-    p.marca +
-    " " +
-    p.modelo;
+    impressoraHistoricoIndex =
+        index;
 
-  document.getElementById("novoContadorImpressora").value =
-    p.contadorAtual || 0;
 
-  document.getElementById("novoTonerImpressora").value =
-    p.toner ?? 100;
+    document.getElementById(
+        "historicoImpressoraTitulo"
+    ).textContent =
+        (
+            p.patrimonio
+                ? p.patrimonio + " - "
+                : ""
+        ) +
+        p.marca +
+        " " +
+        p.modelo;
 
-  document.getElementById("observacaoLeituraImpressora").value = "";
 
-  renderHistoricoImpressora();
+    document.getElementById(
+        "novoContadorImpressora"
+    ).value =
+        p.contadorAtual || 0;
 
-  document
-    .getElementById("historicoImpressoraPanel")
-    .classList.remove("hidden");
+
+    document.getElementById(
+        "novoTonerImpressora"
+    ).value =
+        p.toner ?? 100;
+
+
+    document.getElementById(
+        "observacaoLeituraImpressora"
+    ).value = "";
+
+
+    document.getElementById(
+        "historicoImpressoraPanel"
+    ).classList.remove(
+        "hidden"
+    );
+
+
+    renderHistoricoImpressora();
+
 }
+
+
+/* =========================
+   FECHAR HISTÓRICO
+========================= */
 
 function fecharHistoricoImpressora(){
-  document
-    .getElementById("historicoImpressoraPanel")
-    .classList.add("hidden");
 
-  impressoraHistoricoAtual = null;
+    impressoraHistoricoIndex =
+        null;
+
+
+    document.getElementById(
+        "historicoImpressoraPanel"
+    ).classList.add(
+        "hidden"
+    );
+
 }
+
+
+/* =========================
+   REGISTRAR LEITURA
+========================= */
 
 function registrarLeituraImpressora(){
 
-  if(impressoraHistoricoAtual === null) return;
+    if(
+        impressoraHistoricoIndex ===
+        null
+    ){
 
-  const p =
-    impressoras[impressoraHistoricoAtual];
+        return;
 
-  if(!p) return;
+    }
 
-  const novoContador =
-    numero(
-      document.getElementById("novoContadorImpressora").value
+
+    const p =
+        impressoras[
+            impressoraHistoricoIndex
+        ];
+
+
+    if(!p){
+        return;
+    }
+
+
+    const novoContador =
+        numero(
+            document.getElementById(
+                "novoContadorImpressora"
+            ).value
+        );
+
+
+    const contadorAnterior =
+        numero(
+            p.contadorAtual
+        );
+
+
+    if(
+        novoContador <
+        contadorAnterior
+    ){
+
+        alert(
+            "O novo contador não pode ser menor que o contador atual."
+        );
+
+        return;
+
+    }
+
+
+    const novoToner =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                numero(
+                    document.getElementById(
+                        "novoTonerImpressora"
+                    ).value
+                )
+            )
+        );
+
+
+    const leitura = {
+
+        data:
+            new Date().toISOString(),
+
+        contadorAnterior:
+            contadorAnterior,
+
+        contadorNovo:
+            novoContador,
+
+        paginas:
+            novoContador -
+            contadorAnterior,
+
+        toner:
+            novoToner,
+
+        observacao:
+            document.getElementById(
+                "observacaoLeituraImpressora"
+            ).value.trim()
+
+    };
+
+
+    if(!Array.isArray(
+        p.historico
+    )){
+
+        p.historico = [];
+
+    }
+
+
+    p.historico.push(
+        leitura
     );
 
-  const novoToner =
-    numero(
-      document.getElementById("novoTonerImpressora").value
-    );
 
-  if(novoContador < numero(p.contadorAtual)){
+    p.contadorAtual =
+        novoContador;
+
+
+    p.toner =
+        novoToner;
+
+
+    salvarImpressoras();
+
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+
+    renderHistoricoImpressora();
+
+
     alert(
-      "O novo contador não pode ser menor que o contador atual."
+        "Leitura registrada com sucesso."
     );
-    return;
-  }
 
-  const registro = {
-    id: Date.now(),
-    impressoraId: p.id,
-    data: new Date().toISOString(),
-    contadorAnterior: numero(p.contadorAtual),
-    contadorNovo: novoContador,
-    tonerAnterior: numero(p.toner),
-    tonerNovo: novoToner,
-    observacao:
-      document
-        .getElementById("observacaoLeituraImpressora")
-        .value
-        .trim()
-  };
-
-  historicoImpressoras.push(registro);
-
-  p.contadorAtual = novoContador;
-  p.toner = novoToner;
-  p.atualizadoEm = new Date().toISOString();
-
-  salvarJSON(
-    STORAGE_HISTORICO_IMPRESSORAS,
-    historicoImpressoras
-  );
-
-  salvarJSON(
-    STORAGE_IMPRESSORAS,
-    impressoras
-  );
-
-  renderImpressoras();
-  renderHistoricoImpressora();
-
-  alert("Leitura registrada com sucesso.");
 }
+
+
+/* =========================
+   RENDER HISTÓRICO
+========================= */
 
 function renderHistoricoImpressora(){
 
-  const div =
-    document.getElementById("historicoLeituras");
-
-  if(!div || impressoraHistoricoAtual === null) return;
-
-  const p =
-    impressoras[impressoraHistoricoAtual];
-
-  if(!p) return;
-
-  const lista =
-    historicoImpressoras
-      .filter(h => h.impressoraId === p.id)
-      .slice()
-      .reverse();
-
-  if(lista.length === 0){
-
-    div.innerHTML =
-      '<div class="empty">Nenhuma leitura registrada.</div>';
-
-    return;
-  }
-
-  div.innerHTML =
-    lista.map(function(h){
-
-      const paginas =
-        Math.max(
-          0,
-          numero(h.contadorNovo) -
-          numero(h.contadorAnterior)
+    const div =
+        document.getElementById(
+            "historicoLeituras"
         );
 
-      return `
-        <div class="panel" style="margin-bottom:10px;background:#f8fafc">
 
-          <strong>
-            ${dataBR(h.data)}
-          </strong>
+    if(!div){
+        return;
+    }
 
-          <p>
-            Contador:
-            ${numero(h.contadorAnterior).toLocaleString("pt-BR")}
-            →
-            ${numero(h.contadorNovo).toLocaleString("pt-BR")}
-          </p>
 
-          <p>
-            Páginas no período:
-            <strong>
-              ${paginas.toLocaleString("pt-BR")}
-            </strong>
-          </p>
+    if(
+        impressoraHistoricoIndex ===
+        null
+    ){
 
-          <p>
-            Toner:
-            ${numero(h.tonerAnterior)}%
-            →
-            ${numero(h.tonerNovo)}%
-          </p>
+        div.innerHTML = "";
 
-          ${
-            h.observacao
-              ? `<p>${escapeHTML(h.observacao)}</p>`
-              : ""
-          }
+        return;
+
+    }
+
+
+    const p =
+        impressoras[
+            impressoraHistoricoIndex
+        ];
+
+
+    if(
+        !p ||
+        !Array.isArray(
+            p.historico
+        ) ||
+        p.historico.length === 0
+    ){
+
+        div.innerHTML = `
+            <div class="empty">
+                Nenhuma leitura registrada.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const historico =
+        p.historico
+            .slice()
+            .reverse();
+
+
+    div.innerHTML = `
+
+        <h4>
+            Histórico de leituras
+        </h4>
+
+        <div
+            class="table-container"
+            style="margin-top:10px;">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Data
+                        </th>
+
+                        <th>
+                            Contador anterior
+                        </th>
+
+                        <th>
+                            Novo contador
+                        </th>
+
+                        <th>
+                            Páginas
+                        </th>
+
+                        <th>
+                            Toner
+                        </th>
+
+                        <th>
+                            Observação
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${
+                        historico.map(
+                            function(h){
+
+                                return `
+
+                                    <tr>
+
+                                        <td>
+                                            ${
+                                                dataBR(
+                                                    h.data
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                numero(
+                                                    h.contadorAnterior
+                                                ).toLocaleString(
+                                                    "pt-BR"
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                numero(
+                                                    h.contadorNovo
+                                                ).toLocaleString(
+                                                    "pt-BR"
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <strong>
+                                                ${
+                                                    numero(
+                                                        h.paginas
+                                                    ).toLocaleString(
+                                                        "pt-BR"
+                                                    )
+                                                }
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                badgeTonerImpressora(
+                                                    h.toner
+                                                )
+                                            }
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                escapeHTML(
+                                                    h.observacao ||
+                                                    "-"
+                                                )
+                                            }
+                                        </td>
+
+                                    </tr>
+
+                                `;
+
+                            }
+                        ).join("")
+                    }
+
+                </tbody>
+
+            </table>
 
         </div>
-      `;
 
-    }).join("");
+    `;
+
 }
-
-
-/* =========================================================
-   INICIALIZAÇÃO FINAL
-   ========================================================= */
-
-
-/* =========================================================
-   CATÁLOGO DE TONERS E CUSTOS - IMPORTADO DA PLANILHA PRINTER UP
-   ========================================================= */
-const CATALOGO_TONERS_BASE = [{"modelo":"1","ultimoPago":19.35,"custoMedio":5.13},{"modelo":"12A","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"49A","ultimoPago":19.5,"custoMedio":30.7},{"modelo":"53A","ultimoPago":19.5,"custoMedio":30.4},{"modelo":"63C","ultimoPago":0.0,"custoMedio":38.0},{"modelo":"105A","ultimoPago":19.5,"custoMedio":23.62},{"modelo":"107A","ultimoPago":19.5,"custoMedio":23.74},{"modelo":"217","ultimoPago":19.35,"custoMedio":18.0},{"modelo":"255X","ultimoPago":19.35,"custoMedio":42.03},{"modelo":"258X","ultimoPago":19.35,"custoMedio":51.43},{"modelo":"278A","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"280A","ultimoPago":19.5,"custoMedio":23.46},{"modelo":"280X","ultimoPago":19.35,"custoMedio":29.95},{"modelo":"283","ultimoPago":19.35,"custoMedio":12.15},{"modelo":"283A","ultimoPago":19.5,"custoMedio":19.41},{"modelo":"285","ultimoPago":19.35,"custoMedio":19.0},{"modelo":"285A","ultimoPago":19.5,"custoMedio":19.18},{"modelo":"450","ultimoPago":19.35,"custoMedio":16.05},{"modelo":"464","ultimoPago":19.35,"custoMedio":58.72},{"modelo":"504","ultimoPago":19.35,"custoMedio":4.17},{"modelo":"505A","ultimoPago":19.5,"custoMedio":23.45},{"modelo":"505X","ultimoPago":19.35,"custoMedio":30.15},{"modelo":"540","ultimoPago":19.35,"custoMedio":33.09},{"modelo":"541","ultimoPago":19.35,"custoMedio":33.1},{"modelo":"541A","ultimoPago":19.5,"custoMedio":35.2},{"modelo":"542","ultimoPago":19.35,"custoMedio":33.95},{"modelo":"543","ultimoPago":19.35,"custoMedio":33.1},{"modelo":"544","ultimoPago":19.35,"custoMedio":3.86},{"modelo":"656","ultimoPago":19.35,"custoMedio":175.65},{"modelo":"660","ultimoPago":19.35,"custoMedio":13.95},{"modelo":"664","ultimoPago":19.35,"custoMedio":39.78},{"modelo":"664XL","ultimoPago":0.0,"custoMedio":63.2},{"modelo":"670XL","ultimoPago":0.0,"custoMedio":5.93},{"modelo":"890","ultimoPago":19.35,"custoMedio":29.5},{"modelo":"1005","ultimoPago":19.35,"custoMedio":1144.0},{"modelo":"1060","ultimoPago":19.35,"custoMedio":13.65},{"modelo":"2370","ultimoPago":19.35,"custoMedio":17.37},{"modelo":"2612","ultimoPago":19.35,"custoMedio":0.0},{"modelo":"2612A","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"2885A","ultimoPago":19.5,"custoMedio":19.0},{"modelo":"3020","ultimoPago":19.35,"custoMedio":26.77},{"modelo":"3200","ultimoPago":19.35,"custoMedio":27.2},{"modelo":"3405W","ultimoPago":0.0,"custoMedio":25.05},{"modelo":"3662XL","ultimoPago":0.0,"custoMedio":98.55},{"modelo":"4200","ultimoPago":19.35,"custoMedio":42.2},{"modelo":"4600","ultimoPago":19.35,"custoMedio":34.62},{"modelo":"5340","ultimoPago":19.35,"custoMedio":240.0},{"modelo":"7065","ultimoPago":19.35,"custoMedio":240.0},{"modelo":"8080","ultimoPago":19.35,"custoMedio":80.0},{"modelo":"A","ultimoPago":19.5,"custoMedio":21.4},{"modelo":"A -","ultimoPago":19.5,"custoMedio":0.0},{"modelo":"A-","ultimoPago":19.5,"custoMedio":19.8},{"modelo":"A- CASA DELA","ultimoPago":19.8,"custoMedio":19.8},{"modelo":"B021","ultimoPago":9.35,"custoMedio":16.76},{"modelo":"B215","ultimoPago":38.0,"custoMedio":36.0},{"modelo":"B7520","ultimoPago":160.0,"custoMedio":160.0},{"modelo":"BOBINA ROTULADORA BROTHER","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"C440","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"CB540","ultimoPago":33.7,"custoMedio":33.58},{"modelo":"CB541","ultimoPago":33.1,"custoMedio":32.8},{"modelo":"CB542","ultimoPago":33.1,"custoMedio":33.1},{"modelo":"CB543","ultimoPago":33.1,"custoMedio":33.1},{"modelo":"CE314","ultimoPago":25.2,"custoMedio":25.2},{"modelo":"CF217A","ultimoPago":19.1,"custoMedio":16.74},{"modelo":"CF219A","ultimoPago":24.15,"custoMedio":24.15},{"modelo":"CF414A","ultimoPago":44.0,"custoMedio":44.0},{"modelo":"D101","ultimoPago":21.9,"custoMedio":23.93},{"modelo":"D104","ultimoPago":19.35,"custoMedio":25.2},{"modelo":"D111","ultimoPago":22.6,"custoMedio":23.6},{"modelo":"D116","ultimoPago":24.0,"custoMedio":24.74},{"modelo":"D203","ultimoPago":47.7,"custoMedio":47.7},{"modelo":"DCP2540DW","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"DR116","ultimoPago":22.6,"custoMedio":23.21},{"modelo":"DR217","ultimoPago":21.75,"custoMedio":21.75},{"modelo":"DR360","ultimoPago":27.0,"custoMedio":30.3},{"modelo":"DR450","ultimoPago":20.4,"custoMedio":21.13},{"modelo":"DR464","ultimoPago":43.2,"custoMedio":43.2},{"modelo":"DR650","ultimoPago":28.0,"custoMedio":27.88},{"modelo":"DR660","ultimoPago":19.15,"custoMedio":21.12},{"modelo":"DR750","ultimoPago":31.15,"custoMedio":31.15},{"modelo":"DR880","ultimoPago":28.15,"custoMedio":28.15},{"modelo":"DR1060","ultimoPago":17.75,"custoMedio":17.57},{"modelo":"DR2370","ultimoPago":19.8,"custoMedio":21.27},{"modelo":"DRB021","ultimoPago":47.25,"custoMedio":45.62},{"modelo":"DRUM660","ultimoPago":19.8,"custoMedio":19.8},{"modelo":"E110","ultimoPago":399.0,"custoMedio":399.0},{"modelo":"L575","ultimoPago":3.8,"custoMedio":3.8},{"modelo":"L4260","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"LEX","ultimoPago":50.75,"custoMedio":62.43},{"modelo":"LEX -","ultimoPago":50.75,"custoMedio":0.0},{"modelo":"LEX-","ultimoPago":50.75,"custoMedio":0.0},{"modelo":"M1132","ultimoPago":0.0,"custoMedio":0.0},{"modelo":"PB210","ultimoPago":28.7,"custoMedio":28.7},{"modelo":"RICARDO","ultimoPago":16.3,"custoMedio":16.3},{"modelo":"SEM PRODUTO","ultimoPago":19.35,"custoMedio":64.54},{"modelo":"T544","ultimoPago":3.8,"custoMedio":3.8},{"modelo":"TINTA PRETA EPSON 1","ultimoPago":27.7,"custoMedio":27.7},{"modelo":"TN116","ultimoPago":13.4,"custoMedio":15.46},{"modelo":"TN360","ultimoPago":21.5,"custoMedio":22.16},{"modelo":"TN419","ultimoPago":31.9,"custoMedio":31.9},{"modelo":"TN450","ultimoPago":16.6,"custoMedio":15.52},{"modelo":"TN580","ultimoPago":25.8,"custoMedio":25.8},{"modelo":"TN650","ultimoPago":25.75,"custoMedio":26.39},{"modelo":"TN660","ultimoPago":15.75,"custoMedio":14.07},{"modelo":"TN750","ultimoPago":30.0,"custoMedio":28.65},{"modelo":"TN880","ultimoPago":29.5,"custoMedio":29.21},{"modelo":"TN1060","ultimoPago":11.5,"custoMedio":12.0},{"modelo":"TN2370","ultimoPago":15.75,"custoMedio":14.06},{"modelo":"TN3612","ultimoPago":50.95,"custoMedio":49.3},{"modelo":"TNB021","ultimoPago":13.5,"custoMedio":9.88},{"modelo":"W1030X","ultimoPago":49.15,"custoMedio":50.45},{"modelo":"W1330X","ultimoPago":44.8,"custoMedio":44.8},{"modelo":"W9008","ultimoPago":125.0,"custoMedio":125.0},{"modelo":"X464","ultimoPago":65.05,"custoMedio":65.05}];
-const CATALOGO_TONERS_STORAGE = "baire_catalogo_toners";
-
-function carregarCatalogoToners(){
-  return lerJSON(CATALOGO_TONERS_STORAGE, {});
-}
-
-function salvarCatalogoToners(dados){
-  salvarJSON(CATALOGO_TONERS_STORAGE, dados);
-}
-
-function numeroCatalogo(valor){
-  const n = Number(valor);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
-}
-
-function renderCatalogoToners(){
-  const tbody = document.getElementById("catalogoTonersTabela");
-  if(!tbody) return;
-  const busca = (document.getElementById("catalogoTonerBusca")?.value || "").trim().toLowerCase();
-  const dadosSalvos = carregarCatalogoToners();
-  const lista = CATALOGO_TONERS_BASE.filter(item => item.modelo.toLowerCase().includes(busca));
-
-  if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum modelo encontrado.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = lista.map((item, indice) => {
-    const salvo = dadosSalvos[item.modelo] || {};
-    const valorBase = item.ultimoPago > 0 ? item.ultimoPago : item.custoMedio;
-    const valorToner = salvo.valorToner !== undefined ? numeroCatalogo(salvo.valorToner) : valorBase;
-    const motoboy = numeroCatalogo(salvo.motoboy);
-    const nf = numeroCatalogo(salvo.nf);
-    const custoTotal = valorToner + motoboy + nf;
-    const vendaMinima = custoTotal * 1.4;
-    return `
-      <tr>
-        <td><strong>${escapeHTML(item.modelo)}</strong></td>
-        <td>${item.ultimoPago > 0 ? dinheiro(item.ultimoPago) : "—"}</td>
-        <td>${item.custoMedio > 0 ? dinheiro(item.custoMedio) : "—"}</td>
-        <td><input aria-label="Valor do toner ${item.modelo}" type="number" min="0" step="0.01" value="${valorToner.toFixed(2)}" style="width:110px" onchange="atualizarCustoToner('${indice}','valorToner',this.value)" /></td>
-        <td><input aria-label="Motoboy por unidade ${item.modelo}" type="number" min="0" step="0.01" value="${motoboy.toFixed(2)}" style="width:100px" onchange="atualizarCustoToner('${indice}','motoboy',this.value)" /></td>
-        <td><input aria-label="Custo NF por unidade ${item.modelo}" type="number" min="0" step="0.01" value="${nf.toFixed(2)}" style="width:100px" onchange="atualizarCustoToner('${indice}','nf',this.value)" /></td>
-        <td><strong>${dinheiro(custoTotal)}</strong></td>
-        <td><strong>${dinheiro(vendaMinima)}</strong></td>
-      </tr>`;
-  }).join("");
-}
-
-function atualizarCustoToner(indiceLista, campo, valor){
-  const busca = (document.getElementById("catalogoTonerBusca")?.value || "").trim().toLowerCase();
-  const lista = CATALOGO_TONERS_BASE.filter(item => item.modelo.toLowerCase().includes(busca));
-  const item = lista[Number(indiceLista)];
-  if(!item || !["valorToner","motoboy","nf"].includes(campo)) return;
-  const dados = carregarCatalogoToners();
-  const atual = dados[item.modelo] || {};
-  atual[campo] = numeroCatalogo(valor);
-  dados[item.modelo] = atual;
-  salvarCatalogoToners(dados);
-  renderCatalogoToners();
-}
-
 document.addEventListener("DOMContentLoaded", function(){
 
   carregarDados();
-
   carregarImpressoras();
+  document.getElementById("clienteForm").addEventListener("submit", salvarCliente);
+  document.getElementById("produtoForm").addEventListener("submit", salvarProduto);
+  document.getElementById("osForm").addEventListener("submit", salvarOS);
+  document.getElementById("orcamentoForm").addEventListener("submit", salvarOrcamento);
+  document.getElementById("locacaoForm").addEventListener("submit", salvarLocacao);
+  document.getElementById("contaForm").addEventListener("submit", salvarConta);
 
-  renderClientes();
-  renderProdutos();
-  renderCatalogoToners();
-  prepararVenda();
-  renderVendas();
-  renderOS();
-  renderOrcamentos();
-  renderLocacoes();
-  renderFinanceiro();
-  renderRelatorios();
-  carregarConfiguracoesForm();
-  renderUsuarios();
-  renderImpressoras();
-  atualizarDashboard();
+  document.getElementById("clienteBusca").addEventListener("input", renderClientes);
+  document.getElementById("produtoBusca").addEventListener("input", renderProdutos);
 
-  document
-    .getElementById("clienteForm")
-    ?.addEventListener("submit", salvarCliente);
+  document.getElementById("produtoCusto").addEventListener("input", calcularPrecosProduto);
+  document.getElementById("produtoMargemMinima").addEventListener("input", calcularPrecosProduto);
+  document.getElementById("produtoMargemIdeal").addEventListener("input", calcularPrecosProduto);
 
-  document
-    .getElementById("produtoForm")
-    ?.addEventListener("submit", salvarProduto);
+  document.getElementById("vendaProduto").addEventListener("change", function(){
+    document.getElementById("vendaPreco").value = "";
+    atualizarVendaProduto();
+        const impressoraForm =
+        document.getElementById("impressoraForm");
 
-  document
-    .getElementById("osForm")
-    ?.addEventListener("submit", salvarOS);
+    if(impressoraForm){
 
-  document
-    .getElementById("orcamentoForm")
-    ?.addEventListener("submit", salvarOrcamento);
+        impressoraForm.addEventListener(
+            "submit",
+            salvarImpressora
+        );
 
-  document
-    .getElementById("locacaoForm")
-    ?.addEventListener("submit", salvarLocacao);
+    }
 
-  document
-    .getElementById("contaForm")
-    ?.addEventListener("submit", salvarConta);
 
-  document
-    .getElementById("usuarioForm")
-    ?.addEventListener("submit", salvarUsuario);
+    const impressoraBusca =
+        document.getElementById("impressoraBusca");
 
-  verificarLogin();
+    if(impressoraBusca){
 
-  const clienteBusca =
-    document.getElementById("clienteBusca");
+        impressoraBusca.addEventListener(
+            "input",
+            renderImpressoras
+        );
 
-  if(clienteBusca){
-    clienteBusca.addEventListener(
-      "input",
-      renderClientes
-    );
-  }
+    }
 
-  const produtoBusca =
-    document.getElementById("produtoBusca");
 
-  if(produtoBusca){
-    produtoBusca.addEventListener(
-      "input",
-      renderProdutos
-    );
-  }
+    const catalogoImpressorasBusca =
+        document.getElementById("catalogoImpressorasBusca");
 
-  const produtoCusto =
-    document.getElementById("produtoCusto");
+    if(catalogoImpressorasBusca){
+        catalogoImpressorasBusca.addEventListener(
+            "input",
+            renderCatalogoImpressoras
+        );
+    }
 
-  if(produtoCusto){
-    produtoCusto.addEventListener(
-      "input",
-      calcularPrecosProduto
-    );
-  }
+    renderCatalogoImpressoras();
 
-  const produtoMargemMinima =
-    document.getElementById("produtoMargemMinima");
+    const impressoraFiltro =
+        document.getElementById(
+            "impressoraFiltroStatus"
+        );
 
-  if(produtoMargemMinima){
-    produtoMargemMinima.addEventListener(
-      "input",
-      calcularPrecosProduto
-    );
-  }
+    if(impressoraFiltro){
 
-  const produtoMargemIdeal =
-    document.getElementById("produtoMargemIdeal");
+        impressoraFiltro.addEventListener(
+            "change",
+            renderImpressoras
+        );
 
-  if(produtoMargemIdeal){
-    produtoMargemIdeal.addEventListener(
-      "input",
-      calcularPrecosProduto
-    );
-  }
+    }
 
-  const vendaProduto =
-    document.getElementById("vendaProduto");
 
-  if(vendaProduto){
-    vendaProduto.addEventListener(
-      "change",
-      atualizarVendaProduto
-    );
-  }
+    renderImpressoras();
+
+    atualizarResumoImpressoras();
+  });
 
   [
     "vendaQuantidade",
@@ -4014,44 +7286,167 @@ document.addEventListener("DOMContentLoaded", function(){
     "vendaEntrega",
     "vendaMotoboyValor"
   ].forEach(function(id){
-
-    const el = document.getElementById(id);
-
-    if(el){
-      el.addEventListener(
-        "input",
-        atualizarCalculoVenda
-      );
-
-      el.addEventListener(
-        "change",
-        atualizarCalculoVenda
-      );
-    }
-
+    document.getElementById(id).addEventListener("input", atualizarCalculoVenda);
+    document.getElementById(id).addEventListener("change", atualizarCalculoVenda);
   });
 
-  const impressoraBusca =
-    document.getElementById("impressoraBusca");
-
-  if(impressoraBusca){
-    impressoraBusca.addEventListener(
-      "input",
-      renderImpressoras
-    );
-  }
-
-  const impressoraFiltro =
-    document.getElementById("impressoraFiltroStatus");
-
-  if(impressoraFiltro){
-    impressoraFiltro.addEventListener(
-      "change",
-      renderImpressoras
-    );
-  }
-
+  atualizarDashboard();
+  renderClientes();
+  renderProdutos();
+  renderVendas();
+  renderOS();
+  renderOrcamentos();
+  renderLocacoes();
+  renderFinanceiro();
+  renderRelatorios();
+  carregarConfiguracoesForm();
 });
+
+
+/* =========================================================
+   USUÁRIOS / ACESSO LOCAL
+   ========================================================= */
+const STORAGE_USUARIOS = "baire_usuarios";
+const STORAGE_SESSAO = "baire_sessao";
+let usuarios = [];
+
+function hashSenha(texto){
+  let hash=0;
+  for(let i=0;i<texto.length;i++){hash=((hash<<5)-hash)+texto.charCodeAt(i);hash|=0;}
+  return String(hash);
+}
+function carregarUsuarios(){
+  try{usuarios=JSON.parse(localStorage.getItem(STORAGE_USUARIOS)||"[]");}catch(e){usuarios=[];}
+  if(!usuarios.length){
+    usuarios=[{id:Date.now(),nome:"Administrador",login:"admin",senha:hashSenha("admin123"),perfil:"Administrador",status:"Ativo"}];
+    salvarUsuarios();
+  }
+}
+function salvarUsuarios(){localStorage.setItem(STORAGE_USUARIOS,JSON.stringify(usuarios));}
+function sessaoAtual(){try{return JSON.parse(localStorage.getItem(STORAGE_SESSAO)||"null");}catch(e){return null;}}
+function atualizarBarraUsuario(){
+  const el=document.getElementById("userBar"); const u=sessaoAtual(); if(!el)return;
+  if(u){el.innerHTML='<div class="user-avatar">'+escapeHtml((u.nome||"U").charAt(0).toUpperCase())+'</div><span><strong>'+escapeHtml(u.nome)+'</strong> · '+escapeHtml(u.perfil)+'</span><button class="btn btn-secondary btn-small" onclick="sairSistema()">Sair</button>';}
+}
+function escapeHtml(v){return String(v??"").replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function exibirErroLogin(msg){const el=document.getElementById("loginErro");if(el){el.textContent=msg;el.classList.remove("hidden");}}
+function entrarSistema(login,senha){
+  const u=usuarios.find(x=>String(x.login).toLowerCase()===String(login).trim().toLowerCase() && x.senha===hashSenha(senha) && x.status!=="Inativo");
+  if(!u){exibirErroLogin("Usuário ou senha inválidos, ou usuário inativo.");return false;}
+  localStorage.setItem(STORAGE_SESSAO,JSON.stringify({id:u.id,nome:u.nome,login:u.login,perfil:u.perfil}));
+  document.getElementById("loginOverlay").classList.add("hidden");
+  atualizarBarraUsuario();
+  aplicarPermissoes();
+  return true;
+}
+function sairSistema(){localStorage.removeItem(STORAGE_SESSAO);location.reload();}
+function novoUsuario(){
+  if(!ehAdministrador()){alert("Somente um Administrador pode criar usuários.");return;}
+  document.getElementById("usuarioForm").reset();document.getElementById("usuarioIndex").value="";document.getElementById("usuarioStatus").value="Ativo";document.getElementById("usuarioFormTitle").textContent="Novo Usuário";document.getElementById("usuarioFormPanel").classList.remove("hidden");
+}
+function fecharUsuarioForm(){document.getElementById("usuarioFormPanel")?.classList.add("hidden");}
+function salvarUsuario(event){
+  event.preventDefault(); if(!ehAdministrador()){alert("Somente um Administrador pode alterar usuários.");return;}
+  const idx=document.getElementById("usuarioIndex").value; const nome=document.getElementById("usuarioNome").value.trim(); const login=document.getElementById("usuarioLogin").value.trim(); const senha=document.getElementById("usuarioSenha").value;
+  if(!nome||!login){alert("Preencha nome e usuário.");return;}
+  const repetido=usuarios.some((u,i)=>i!==Number(idx||-1)&&u.login.toLowerCase()===login.toLowerCase()); if(repetido){alert("Este usuário/login já existe.");return;}
+  if(idx==="" && !senha){alert("Informe uma senha para o novo usuário.");return;}
+  const base={nome,login,perfil:document.getElementById("usuarioPerfil").value,status:document.getElementById("usuarioStatus").value};
+  if(idx===""){base.id=Date.now();base.senha=hashSenha(senha);usuarios.push(base);}else{base.id=usuarios[Number(idx)].id;base.senha=senha?hashSenha(senha):usuarios[Number(idx)].senha;usuarios[Number(idx)]=base;}
+  salvarUsuarios();fecharUsuarioForm();renderUsuarios();alert("Usuário salvo com sucesso.");
+}
+function editarUsuario(index){
+  if(!ehAdministrador()){alert("Somente um Administrador pode editar usuários.");return;} const u=usuarios[index];if(!u)return;
+  document.getElementById("usuarioIndex").value=index;document.getElementById("usuarioNome").value=u.nome;document.getElementById("usuarioLogin").value=u.login;document.getElementById("usuarioSenha").value="";document.getElementById("usuarioPerfil").value=u.perfil;document.getElementById("usuarioStatus").value=u.status;document.getElementById("usuarioFormTitle").textContent="Editar Usuário";document.getElementById("usuarioFormPanel").classList.remove("hidden");
+}
+function excluirUsuario(index){
+  if(!ehAdministrador()){alert("Somente um Administrador pode excluir usuários.");return;} const u=usuarios[index];if(!u)return;
+  const sess=sessaoAtual(); if(sess&&String(sess.id)===String(u.id)){alert("Você não pode excluir o usuário que está usando agora.");return;}
+  if(usuarios.filter(x=>x.status!=="Inativo").length<=1 && u.status!=="Inativo"){alert("Mantenha pelo menos um Administrador ativo no sistema.");return;}
+  if(confirm("Excluir o usuário "+u.nome+"?")){usuarios.splice(index,1);salvarUsuarios();renderUsuarios();}
+}
+function renderUsuarios(){
+  const t=document.getElementById("usuariosTabela");if(!t)return; if(!ehAdministrador()){t.innerHTML='<tr><td colspan="5" class="empty">Apenas Administradores podem gerenciar usuários.</td></tr>';return;}
+  if(!usuarios.length){t.innerHTML='<tr><td colspan="5" class="empty">Nenhum usuário cadastrado.</td></tr>';return;}
+  t.innerHTML=usuarios.map((u,i)=>'<tr><td><strong>'+escapeHtml(u.nome)+'</strong></td><td>'+escapeHtml(u.login)+'</td><td><span class="badge badge-blue">'+escapeHtml(u.perfil)+'</span></td><td><span class="badge '+(u.status==='Ativo'?'badge-green':'badge-red')+'">'+escapeHtml(u.status)+'</span></td><td><button class="btn btn-secondary btn-small" onclick="editarUsuario('+i+')">Editar</button> <button class="btn btn-danger btn-small" onclick="excluirUsuario('+i+')">Excluir</button></td></tr>').join('');
+}
+function ehAdministrador(){const s=sessaoAtual();return !!s&&s.perfil==="Administrador";}
+function aplicarPermissoes(){renderUsuarios();}
+function protegerAcesso(){
+  carregarUsuarios(); const s=sessaoAtual(); const overlay=document.getElementById("loginOverlay");
+  if(s && usuarios.some(u=>String(u.id)===String(s.id)&&u.status!=="Inativo")){overlay?.classList.add("hidden");atualizarBarraUsuario();aplicarPermissoes();}
+  else{localStorage.removeItem(STORAGE_SESSAO);overlay?.classList.remove("hidden");}
+}
+
+
+document.addEventListener("DOMContentLoaded",function(){
+  protegerAcesso();
+  const lf=document.getElementById("loginForm");
+  if(lf)lf.addEventListener("submit",function(e){e.preventDefault();entrarSistema(document.getElementById("loginUsuario").value,document.getElementById("loginSenha").value);});
+  const uf=document.getElementById("usuarioForm");
+  if(uf)uf.addEventListener("submit",salvarUsuario);
+});
+
+/* =========================================================
+   COMPATIBILIDADE
+   ========================================================= */
+
+window.showScreen = showScreen;
+  window.novaImpressora =
+    novaImpressora;
+
+window.fecharImpressoraForm =
+    fecharImpressoraForm;
+
+window.editarImpressora =
+    editarImpressora;
+
+window.excluirImpressora =
+    excluirImpressora;
+
+window.abrirHistoricoImpressora =
+    abrirHistoricoImpressora;
+
+window.fecharHistoricoImpressora =
+    fecharHistoricoImpressora;
+
+window.registrarLeituraImpressora =
+    registrarLeituraImpressora;
+window.novoCliente = novoCliente;
+window.fecharClienteForm = fecharClienteForm;
+window.editarCliente = editarCliente;
+window.excluirCliente = excluirCliente;
+window.novoProduto = novoProduto;
+window.fecharProdutoForm = fecharProdutoForm;
+window.editarProduto = editarProduto;
+window.excluirProduto = excluirProduto;
+window.showScreen = showScreen;
+window.salvarVenda = salvarVenda;
+window.limparVenda = limparVenda;
+window.imprimirResumoVenda = imprimirResumoVenda;
+window.gerarBoleto = gerarBoleto;
+window.imprimirVenda = imprimirVenda;
+window.excluirVenda = excluirVenda;
+window.novaOS = novaOS;
+window.fecharOS = fecharOS;
+window.excluirOS = excluirOS;
+window.novoOrcamento = novoOrcamento;
+window.fecharOrcamento = fecharOrcamento;
+window.excluirOrcamento = excluirOrcamento;
+window.imprimirOrcamento = imprimirOrcamento;
+window.novaLocacao = novaLocacao;
+window.fecharLocacao = fecharLocacao;
+window.excluirLocacao = excluirLocacao;
+window.novaConta = novaConta;
+window.fecharConta = fecharConta;
+window.excluirConta = excluirConta;
+window.imprimirRelatorio = imprimirRelatorio;
+window.salvarConfiguracoes = salvarConfiguracoes;
+window.exportarBackup = exportarBackup;
+window.confirmarLimpeza = confirmarLimpeza;
+window.novoCadastroSimples = novoCadastroSimples;
+window.novoUsuario=novoUsuario;window.fecharUsuarioForm=fecharUsuarioForm;window.editarUsuario=editarUsuario;window.excluirUsuario=excluirUsuario;window.sairSistema=sairSistema;
+
 </script>
 
 </body>
