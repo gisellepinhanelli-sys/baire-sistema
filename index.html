@@ -260,31 +260,456 @@ tr:hover td{background:#f8fafc}
 }
 
 /* =========================================================
-   ACESSO / USUÁRIOS - CONTROLE LOCAL
+   LOGIN BAIRE - VERSÃO CORRIGIDA
+   Usuário único
+   Login: admin
+   Senha: 1234
    ========================================================= */
-.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#174ea6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99999}
-.login-box{width:min(430px,100%);background:#fff;border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.login-logo{text-align:center;margin-bottom:24px}.login-logo h1{margin:0;color:#174ea6;font-size:34px;letter-spacing:2px}.login-logo p{margin:6px 0 0;color:#64748b}
-.login-error{background:#fef2f2;color:#991b1b;padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:13px}
-.user-bar{display:flex;align-items:center;gap:10px;margin-left:auto;color:#475569;font-size:13px}.user-avatar{width:32px;height:32px;border-radius:50%;background:#dbeafe;color:#1e40af;display:flex;align-items:center;justify-content:center;font-weight:800}
-@media(max-width:700px){.user-bar{margin-left:0}}
 
-</style>
-</head>
-<body>
+const BAIRE_LOGIN_STORAGE = "baire_login_usuario";
+const BAIRE_SESSAO_STORAGE = "baire_sessao";
 
-<div id="loginOverlay" class="login-overlay">
-  <div class="login-box">
-    <div class="login-logo"><h1>BAIRE</h1><p>Sistema Empresarial</p></div>
-    <div id="loginErro" class="login-error hidden"></div>
-    <form id="loginForm">
-      <div class="form-group" style="margin-bottom:14px"><label>Usuário</label><input id="loginUsuario" autocomplete="username" required></div>
-      <div class="form-group" style="margin-bottom:18px"><label>Senha</label><input type="password" id="loginSenha" autocomplete="current-password" required></div>
-      <button type="submit" class="btn btn-primary" style="width:100%">Entrar no sistema</button>
-    </form>
-    <p class="footer-note" style="text-align:center;margin-bottom:0">Acesso local do sistema BAIRE.</p>
-  </div>
-</div>
+let usuarioBaire = {
+  id: 1,
+  nome: "Administrador",
+  login: "admin",
+  senha: "1234",
+  perfil: "Administrador",
+  status: "Ativo"
+};
+
+function carregarLoginBaire(){
+
+  try{
+
+    const salvo = localStorage.getItem(BAIRE_LOGIN_STORAGE);
+
+    if(salvo){
+
+      const dados = JSON.parse(salvo);
+
+      if(
+        dados &&
+        dados.login &&
+        dados.senha
+      ){
+
+        usuarioBaire = {
+          id: dados.id || 1,
+          nome: dados.nome || "Administrador",
+          login: dados.login,
+          senha: dados.senha,
+          perfil: dados.perfil || "Administrador",
+          status: dados.status || "Ativo"
+        };
+
+      }
+
+    }
+
+  }catch(e){
+
+    console.error(
+      "Erro ao carregar usuário BAIRE:",
+      e
+    );
+
+  }
+
+  salvarLoginBaire();
+}
+
+
+function salvarLoginBaire(){
+
+  try{
+
+    localStorage.setItem(
+      BAIRE_LOGIN_STORAGE,
+      JSON.stringify(usuarioBaire)
+    );
+
+  }catch(e){
+
+    console.error(
+      "Erro ao salvar usuário BAIRE:",
+      e
+    );
+
+  }
+
+}
+
+
+function obterSessaoBaire(){
+
+  try{
+
+    return JSON.parse(
+      localStorage.getItem(
+        BAIRE_SESSAO_STORAGE
+      ) || "null"
+    );
+
+  }catch(e){
+
+    return null;
+
+  }
+
+}
+
+
+function salvarSessaoBaire(){
+
+  localStorage.setItem(
+    BAIRE_SESSAO_STORAGE,
+    JSON.stringify({
+      id: usuarioBaire.id,
+      nome: usuarioBaire.nome,
+      login: usuarioBaire.login,
+      perfil: usuarioBaire.perfil
+    })
+  );
+
+}
+
+
+function atualizarBarraUsuarioBaire(){
+
+  const bar =
+    document.getElementById("userBar");
+
+  if(!bar) return;
+
+  const sessao =
+    obterSessaoBaire();
+
+  if(!sessao){
+
+    bar.innerHTML = "";
+
+    return;
+
+  }
+
+  const nome =
+    sessao.nome || "Administrador";
+
+  bar.innerHTML = `
+    <div class="user-avatar">
+      ${String(nome).charAt(0).toUpperCase()}
+    </div>
+
+    <span>
+      Olá,
+      <strong>${escapeHTML(nome)}</strong>
+    </span>
+
+    <button
+      class="btn btn-secondary btn-small"
+      type="button"
+      onclick="sairSistemaBaire()">
+      Sair
+    </button>
+  `;
+
+}
+
+
+function mostrarErroLoginBaire(mensagem){
+
+  const erro =
+    document.getElementById("loginErro");
+
+  if(!erro) return;
+
+  erro.textContent =
+    mensagem;
+
+  erro.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+function limparErroLoginBaire(){
+
+  const erro =
+    document.getElementById("loginErro");
+
+  if(!erro) return;
+
+  erro.textContent = "";
+
+  erro.classList.add(
+    "hidden"
+  );
+
+}
+
+
+function entrarSistemaBaire(){
+
+  const loginEl =
+    document.getElementById(
+      "loginUsuario"
+    );
+
+  const senhaEl =
+    document.getElementById(
+      "loginSenha"
+    );
+
+  if(!loginEl || !senhaEl){
+
+    console.error(
+      "Campos de login não encontrados."
+    );
+
+    return false;
+
+  }
+
+  const login =
+    loginEl.value
+      .trim()
+      .toLowerCase();
+
+  const senha =
+    senhaEl.value;
+
+  limparErroLoginBaire();
+
+  if(
+    login !==
+    String(
+      usuarioBaire.login
+    )
+      .trim()
+      .toLowerCase()
+  ){
+
+    mostrarErroLoginBaire(
+      "Usuário ou senha inválidos."
+    );
+
+    return false;
+
+  }
+
+  if(
+    senha !==
+    String(
+      usuarioBaire.senha
+    )
+  ){
+
+    mostrarErroLoginBaire(
+      "Usuário ou senha inválidos."
+    );
+
+    return false;
+
+  }
+
+  if(
+    usuarioBaire.status !==
+    "Ativo"
+  ){
+
+    mostrarErroLoginBaire(
+      "O usuário está inativo."
+    );
+
+    return false;
+
+  }
+
+  salvarSessaoBaire();
+
+  const overlay =
+    document.getElementById(
+      "loginOverlay"
+    );
+
+  if(overlay){
+
+    overlay.classList.add(
+      "hidden"
+    );
+
+  }
+
+  atualizarBarraUsuarioBaire();
+
+  if(
+    typeof atualizarDashboard ===
+    "function"
+  ){
+
+    atualizarDashboard();
+
+  }
+
+  return true;
+
+}
+
+
+function sairSistemaBaire(){
+
+  localStorage.removeItem(
+    BAIRE_SESSAO_STORAGE
+  );
+
+  location.reload();
+
+}
+
+
+function verificarLoginBaire(){
+
+  carregarLoginBaire();
+
+  const sessao =
+    obterSessaoBaire();
+
+  if(sessao){
+
+    if(
+      String(sessao.id) ===
+        String(usuarioBaire.id) &&
+      usuarioBaire.status ===
+        "Ativo"
+    ){
+
+      const overlay =
+        document.getElementById(
+          "loginOverlay"
+        );
+
+      if(overlay){
+
+        overlay.classList.add(
+          "hidden"
+        );
+
+      }
+
+      atualizarBarraUsuarioBaire();
+
+      return;
+
+    }
+
+    localStorage.removeItem(
+      BAIRE_SESSAO_STORAGE
+    );
+
+  }
+
+  const form =
+    document.getElementById(
+      "loginForm"
+    );
+
+  if(!form) return;
+
+  form.onsubmit =
+    function(event){
+
+      event.preventDefault();
+
+      entrarSistemaBaire();
+
+    };
+
+}
+
+
+function atualizarUsuarioBar(){
+
+  atualizarBarraUsuarioBaire();
+
+}
+
+
+/* =========================================================
+   USUÁRIO ÚNICO
+   ========================================================= */
+
+function novoUsuario(){
+
+  alert(
+    "O sistema BAIRE está configurado para utilizar apenas o usuário Administrador."
+  );
+
+}
+
+
+function editarUsuario(){
+
+  alert(
+    "O usuário administrador está configurado para acesso único."
+  );
+
+}
+
+
+function excluirUsuario(){
+
+  alert(
+    "O usuário administrador não pode ser excluído."
+  );
+
+}
+
+
+function renderUsuarios(){
+
+  const tabela =
+    document.getElementById(
+      "usuariosTabela"
+    );
+
+  if(!tabela) return;
+
+  tabela.innerHTML = `
+    <tr>
+
+      <td>
+        Administrador
+      </td>
+
+      <td>
+        admin
+      </td>
+
+      <td>
+        Administrador
+      </td>
+
+      <td>
+        <span class="badge badge-green">
+          Ativo
+        </span>
+      </td>
+
+      <td>
+        <button
+          class="btn btn-small btn-primary"
+          type="button"
+          onclick="editarUsuario()">
+          Editar
+        </button>
+      </td>
+
+    </tr>
+  `;
+
+}
 
 
 <aside class="sidebar">
@@ -4498,6 +4923,21 @@ document.addEventListener("DOMContentLoaded", function(){
       "change",
       renderImpressoras
     );
+  }
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  try{
+
+    verificarLoginBaire();
+
+  }catch(e){
+
+    console.error(
+      "Erro no login BAIRE:",
+      e
+    );
+
   }
 
 });
