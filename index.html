@@ -680,7 +680,7 @@ tr:hover td{background:#f8fafc}
   <div class="panel">
     <div class="alert alert-info">
       <strong>Como calcular:</strong> custo total = valor do toner + motoboy por unidade + custo da NF por unidade.
-      O preço mínimo usa margem de 40% sobre o custo total. Para distribuir uma entrega entre vários toners,
+      O preço mínimo dos toners considera lucro mínimo de 50% sobre o custo total (toner + motoboy por unidade + NF por unidade). Para distribuir uma entrega entre vários toners,
       informe o valor do motoboy dividido pela quantidade de unidades compradas.
     </div>
     <div class="form-group" style="max-width:420px;margin-bottom:16px">
@@ -692,7 +692,7 @@ tr:hover td{background:#f8fafc}
         <thead><tr>
           <th>Modelo</th><th>Último valor pago</th><th>Custo médio planilha</th>
           <th>Valor toner (R$)</th><th>Motoboy/un. (R$)</th><th>NF/un. (R$)</th>
-          <th>Custo total</th><th>Venda mínima (40%)</th>
+          <th>Custo total</th><th>Venda mínima (50%)</th>
         </tr></thead>
         <tbody id="catalogoTonersTabela"></tbody>
       </table>
@@ -4293,7 +4293,7 @@ function renderCatalogoToners(){
     const motoboy = numeroCatalogo(salvo.motoboy);
     const nf = numeroCatalogo(salvo.nf);
     const custoTotal = valorToner + motoboy + nf;
-    const vendaMinima = custoTotal * 1.4;
+    const vendaMinima = custoTotal * 1.5;
     return `
       <tr>
         <td><strong>${escapeHTML(item.modelo)}</strong></td>
