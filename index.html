@@ -1380,7 +1380,7 @@ tr:hover td{background:#f8fafc}
 
     <div class="form-actions">
       <button type="button" class="btn btn-success" onclick="salvarVenda()">💾 Salvar Venda</button>
-      <button type="button" class="btn btn-warning" onclick="imprimirResumoVenda()">🖨️ Imprimir Resumo</button>
+      <button type="button" class="btn btn-warning" onclick="imprimirResumoVenda()">🖨️ Imprimir Pedido</button>
       <button type="button" class="btn btn-primary" onclick="gerarBoleto()">🧾 Gerar Boleto</button>
     </div>
   </div>
@@ -2443,6 +2443,95 @@ function renderVendas(){
   }).join("");
 }
 
+function numeroPedido(v){
+  if(!v || !v.id) return "PRÉVIA";
+  return "PV-" + String(v.id).slice(-6);
+}
+
+function montarPedidoImpressao(v, cliente, titulo){
+  cliente = cliente || {};
+  const endereco = cliente.endereco || "";
+  const cidade = cliente.cidade || "";
+  const documento = cliente.documento || "";
+  const telefone = cliente.telefone || "";
+  const whatsapp = cliente.whatsapp || "";
+  const email = cliente.email || "";
+  const subtotal = numero(v.subtotal);
+  const motoboy = numero(v.custoMotoboy);
+  const totalPedido = subtotal;
+  const codigo = v.codigo || "";
+
+  return `
+    <div class="pedido-cabecalho">
+      <div>
+        <h1>BAIRE</h1>
+        <div class="empresa">TONERS E IMPRESSORAS</div>
+      </div>
+      <div class="pedido-titulo">
+        <strong>${titulo}</strong>
+        <span>Nº ${numeroPedido(v)}</span>
+      </div>
+    </div>
+
+    <div class="linha-info">
+      <div><strong>Data:</strong> ${dataBR(v.data)}</div>
+      <div><strong>Pagamento:</strong> ${escapeHTML(v.pagamento || "Não informado")}</div>
+      <div><strong>Entrega:</strong> ${escapeHTML(v.entrega || "Não informada")}</div>
+    </div>
+
+    <div class="box">
+      <h3>DADOS DO CLIENTE</h3>
+      <div class="grid-dados">
+        <div><strong>Nome / Razão Social:</strong> ${escapeHTML(cliente.nome || v.clienteNome || "Consumidor")}</div>
+        <div><strong>CPF / CNPJ:</strong> ${escapeHTML(documento || "Não informado")}</div>
+        <div><strong>Telefone:</strong> ${escapeHTML(telefone || "Não informado")}</div>
+        <div><strong>WhatsApp:</strong> ${escapeHTML(whatsapp || "Não informado")}</div>
+        <div><strong>E-mail:</strong> ${escapeHTML(email || "Não informado")}</div>
+        <div><strong>Cidade:</strong> ${escapeHTML(cidade || "Não informado")}</div>
+        <div class="campo-largo"><strong>Endereço:</strong> ${escapeHTML(endereco || "Não informado")}</div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>ITENS DO PEDIDO</h3>
+      <table class="pedido-itens">
+        <thead>
+          <tr><th>Código</th><th>Produto / Toner</th><th>Qtd.</th><th>Valor Unit.</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${escapeHTML(codigo || "-")}</td>
+            <td>${escapeHTML(v.produtoNome || "")}</td>
+            <td>${numero(v.quantidade)}</td>
+            <td>${dinheiro(v.precoUnitario)}</td>
+            <td>${dinheiro(subtotal)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totais">
+      <div><span>Subtotal dos produtos</span><strong>${dinheiro(subtotal)}</strong></div>
+      ${motoboy > 0 ? `<div><span>Entrega / Motoboy</span><strong>${dinheiro(motoboy)}</strong></div>` : ""}
+      <div class="total-final"><span>VALOR TOTAL DO PEDIDO</span><strong>${dinheiro(totalPedido)}</strong></div>
+    </div>
+
+    <div class="box observacoes">
+      <h3>OBSERVAÇÕES</h3>
+      <p>${escapeHTML(cliente.observacoes || "") || "Sem observações."}</p>
+    </div>
+
+    <div class="assinaturas">
+      <div>Assinatura do cliente</div>
+      <div>Responsável BAIRE</div>
+    </div>
+
+    <div class="rodape-pedido">
+      Documento interno de pedido de venda. Este documento não substitui nota fiscal.
+    </div>
+  `;
+}
+
 function imprimirResumoVenda(){
   const produtoIndex = document.getElementById("vendaProduto").value;
   const p = produtos[Number(produtoIndex)];
@@ -2452,41 +2541,26 @@ function imprimirResumoVenda(){
   }
 
   const clienteIndex = document.getElementById("vendaCliente").value;
-  const cliente = clienteIndex === "" ? "Consumidor" : (clientes[Number(clienteIndex)]?.nome || "Consumidor");
-
+  const cliente = clienteIndex === "" ? {nome:"Consumidor"} : (clientes[Number(clienteIndex)] || {nome:"Consumidor"});
   const qtd = Math.max(1, numero(document.getElementById("vendaQuantidade").value));
   const preco = numero(document.getElementById("vendaPreco").value);
-  const total = preco * qtd;
+  const entrega = document.getElementById("vendaEntrega").value;
+  const motoboy = entrega === "Motoboy" ? numero(document.getElementById("vendaMotoboyValor").value) : 0;
+  const v = {
+    id:null, data:new Date().toISOString(), clienteNome:cliente.nome, codigo:p.codigo, produtoNome:p.nome,
+    quantidade:qtd, precoUnitario:preco, subtotal:preco*qtd, custoMotoboy:motoboy,
+    pagamento:document.getElementById("vendaPagamento").value, entrega:entrega
+  };
 
-  abrirImpressao(`
-    <h1>BAIRE</h1>
-    <h2>Resumo de Venda</h2>
-    <p><strong>Cliente:</strong> ${escapeHTML(cliente)}</p>
-    <p><strong>Produto:</strong> ${escapeHTML(p.nome)}</p>
-    <p><strong>Quantidade:</strong> ${qtd}</p>
-    <p><strong>Preço unitário:</strong> ${dinheiro(preco)}</p>
-    <h2>Total: ${dinheiro(total)}</h2>
-  `);
+  abrirImpressao(montarPedidoImpressao(v, cliente, "PEDIDO DE VENDA - PRÉVIA"));
 }
 
 function imprimirVenda(index){
   const v = vendas[index];
   if(!v) return;
 
-  abrirImpressao(`
-    <h1>BAIRE</h1>
-    <h2>Comprovante de Venda</h2>
-    <p><strong>Data:</strong> ${dataBR(v.data)}</p>
-    <p><strong>Cliente:</strong> ${escapeHTML(v.clienteNome)}</p>
-    <p><strong>Produto:</strong> ${escapeHTML(v.produtoNome)}</p>
-    <p><strong>Quantidade:</strong> ${v.quantidade}</p>
-    <p><strong>Pagamento:</strong> ${escapeHTML(v.pagamento)}</p>
-    <p><strong>Entrega:</strong> ${escapeHTML(v.entrega)}</p>
-    <hr>
-    <p><strong>Subtotal:</strong> ${dinheiro(v.subtotal)}</p>
-    <p><strong>Custos extras:</strong> ${dinheiro(v.custoMotoboy + v.custoBoleto)}</p>
-    <h2>Valor total: ${dinheiro(v.subtotal)}</h2>
-  `);
+  const cliente = v.clienteId != null ? (clientes.find(function(c){ return c.id === v.clienteId; }) || {}) : {nome:v.clienteNome || "Consumidor"};
+  abrirImpressao(montarPedidoImpressao(v, cliente, "PEDIDO DE VENDA"));
 }
 
 function gerarBoleto(){
@@ -2965,10 +3039,32 @@ function abrirImpressao(conteudo){
       <meta charset="UTF-8">
       <title>BAIRE - Impressão</title>
       <style>
-        body{font-family:Arial,sans-serif;padding:40px;color:#111}
-        h1{font-size:28px}
+        body{font-family:Arial,sans-serif;padding:28px;color:#111;max-width:900px;margin:0 auto;font-size:13px}
+        h1{font-size:30px;margin:0}
         h2{margin-top:10px}
         hr{border:0;border-top:1px solid #ccc;margin:20px 0}
+        .pedido-cabecalho{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #174ea6;padding-bottom:14px;margin-bottom:14px}
+        .empresa{font-size:12px;letter-spacing:1px;margin-top:3px}
+        .pedido-titulo{text-align:right;display:flex;flex-direction:column;gap:5px;font-size:16px}
+        .pedido-titulo span{font-size:13px}
+        .linha-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;background:#f3f4f6;padding:10px;margin-bottom:14px}
+        .box{border:1px solid #cfcfcf;border-radius:5px;padding:12px;margin-bottom:14px}
+        .box h3{font-size:13px;margin:0 0 10px;color:#174ea6;border-bottom:1px solid #ddd;padding-bottom:6px}
+        .grid-dados{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .campo-largo{grid-column:1 / -1}
+        .pedido-itens{width:100%;border-collapse:collapse}
+        .pedido-itens th,.pedido-itens td{border:1px solid #ccc;padding:8px;text-align:left}
+        .pedido-itens th{background:#f3f4f6}
+        .pedido-itens th:nth-child(3),.pedido-itens td:nth-child(3){text-align:center}
+        .pedido-itens th:nth-child(4),.pedido-itens th:nth-child(5),.pedido-itens td:nth-child(4),.pedido-itens td:nth-child(5){text-align:right}
+        .totais{margin-left:auto;width:360px;margin-bottom:18px}
+        .totais>div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee}
+        .totais .total-final{font-size:16px;border-top:2px solid #111;border-bottom:2px solid #111;padding:10px 0}
+        .observacoes{min-height:60px}
+        .assinaturas{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:55px;text-align:center}
+        .assinaturas div{border-top:1px solid #111;padding-top:6px}
+        .rodape-pedido{text-align:center;font-size:10px;color:#666;margin-top:30px}
+        @media print{body{padding:10mm;max-width:none}.box{break-inside:avoid}.pedido-itens{break-inside:avoid}}
       </style>
      </head>
     <body>
