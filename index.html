@@ -1534,15 +1534,15 @@ tr:hover td{background:#f8fafc}
 
 <section id="screen-pedidos" class="screen"><div class="topbar"><div><p class="eyebrow">EXPEDIÇÃO · BAIRE</p><h2>Pedidos de venda</h2></div><button class="btn btn-primary" onclick="novoOrcamento()">+ Novo orçamento / pedido</button></div><div class="panel"><p class="muted">Gere um pedido a partir de um orçamento salvo. Cada orçamento gera um único pedido, com número próprio. O pedido organiza a entrega; não emite NF nem dá baixa no estoque.</p><input id="pedidoBusca" class="search" aria-label="Buscar pedidos" placeholder="Buscar número ou cliente"><div class="table-container"><table><thead><tr><th>Pedido / origem</th><th>Cliente / entrega</th><th>Total</th><th>Status</th><th>Ações</th></tr></thead><tbody id="pedidosTabela"></tbody></table></div></div></section>
 
-<section id="screen-emails" class="screen"><div class="topbar"><div><p class="eyebrow">RELACIONAMENTO · BAIRE</p><h2>E-mails pelo Outlook</h2></div><span class="badge badge-blue" id="outlookStatus">Conta não conectada</span></div>
-  <div class="panel"><details><summary>Configurar conexão Microsoft</summary><p>O envio direto precisa do ID de um aplicativo Microsoft registrado para este site. Veja as instruções no arquivo LEIA-ME. A senha é informada somente na página da Microsoft.</p><label for="outlookClientId">ID do aplicativo (cliente)</label><input id="outlookClientId" placeholder="00000000-0000-0000-0000-000000000000"><p class="muted">URL de retorno: <span id="outlookRedirect"></span></p><button type="button" class="btn btn-secondary" onclick="Baire.saveOutlookConfig()">Salvar configuração</button></details><div class="form-actions"><button class="btn btn-primary" onclick="Baire.connectOutlook()">Conectar Outlook</button><button class="btn btn-secondary" onclick="Baire.disconnectOutlook()">Desconectar</button></div></div>
+<section id="screen-emails" class="screen"><div class="topbar"><div><p class="eyebrow">RELACIONAMENTO · BAIRE</p><h2>E-mails pelo Outlook</h2></div><span class="badge badge-blue" id="outlookStatus">Envio manual no computador</span></div>
+  <div class="panel"><h3>Outlook do computador · e-mail Terra</h3><p>Use a conta <strong>giselle@baireimpressora.com.br</strong> já configurada no Outlook. No Windows, defina o Outlook como aplicativo padrão de e-mail.</p><p>Escolha um orçamento ou pedido, revise o texto e clique em <strong>Abrir no Outlook</strong>. Confira o campo De no Outlook e clique em Enviar por lá. Não é necessário informar senha ou ID Microsoft neste sistema.</p></div>
   <div class="panel"><form id="emailForm"><div class="form-grid">
     <div class="form-group"><label for="emailTipo">Modelo de mensagem</label><select id="emailTipo"><option value="orcamento">Envio de orçamento</option><option value="pedido">Confirmação de pedido</option><option value="acompanhamento">Acompanhamento de orçamento</option></select></div>
     <div class="form-group"><label for="emailRegistro">Orçamento / pedido</label><select id="emailRegistro"></select></div>
     <div class="form-group"><label for="emailPara">Destinatário</label><input type="email" id="emailPara" required></div><div class="form-group"><label for="emailAssunto">Assunto</label><input id="emailAssunto" required></div>
     <div class="form-group full"><label for="emailCorpo">Mensagem para revisão</label><textarea id="emailCorpo" rows="12" required></textarea></div>
-  </div><div class="form-actions"><button class="btn btn-primary" id="emailEnviar">Enviar pelo Outlook</button><button type="button" class="btn btn-secondary" onclick="Baire.fillEmail()">Reaplicar modelo</button><button type="button" class="btn btn-secondary" onclick="Baire.openOutlookDraft()">Abrir rascunho no Outlook Web</button></div><p class="muted">O envio ocorre somente ao clicar em Enviar. Abrir um rascunho não envia a mensagem. Os itens e totais vão no corpo do e-mail.</p><p id="emailResultado" role="status"></p></form></div>
-  <div class="panel"><h3>Histórico de envios</h3><div id="emailHistorico"></div></div>
+  </div><div class="form-actions"><button class="btn btn-primary" id="emailEnviar">Abrir no Outlook</button><button type="button" class="btn btn-secondary" onclick="Baire.fillEmail()">Reaplicar modelo</button><button type="button" class="btn btn-secondary" onclick="Baire.copyEmailBody()">Copiar mensagem</button></div><p class="muted">O botão abre o aplicativo padrão de e-mail. Itens e totais vão no corpo da mensagem; nenhum arquivo é anexado. Para mensagens longas, use Copiar mensagem e cole no Outlook. O orçamento não é marcado como enviado automaticamente.</p><p id="emailResultado" role="status"></p></form></div>
+  <div class="panel"><h3>Histórico de e-mails</h3><p class="muted">O sistema não acompanha os envios feitos manualmente. Confira Itens Enviados no Outlook.</p><div id="emailHistorico"></div></div>
 </section>
 
 
@@ -4605,7 +4605,6 @@ document.addEventListener("DOMContentLoaded", function(){
 </script>
 
 
-<script src="vendor/msal-browser-5.24.0.min.js"></script>
 <script>
 window.BAIRE_COTACOES = [
   {
@@ -6246,7 +6245,6 @@ window.Baire = (() => {
     document.querySelectorAll('[data-calc]').forEach(b=>b.addEventListener('click',()=>calcKey(b.dataset.calc)));$('calcDisplay').addEventListener('click',pasteCalc);
     $('clienteDocumento').required=true;
     window.addEventListener('storage',e=>{if(e.key===KEY){const db=read();clientes=db.clientes;orcamentos=db.orcamentos;renderQuotes();renderOrders();renderClientes();fillClients();renderCatalog();atualizarDashboard();}});
-    $('outlookRedirect').textContent=new URL('./',location.href).href;
     document.dispatchEvent(new Event('baire-ready'));
   }
   // Mantém as chaves legadas acessíveis, usando uma gravação atômica para cliente + orçamento + número.
@@ -6264,25 +6262,10 @@ window.Baire = (() => {
 
 </script>
 <script>
-/* Autenticação Microsoft oficial, delegada ao usuário. Nenhuma senha ou segredo no código. */
+/* Rascunhos no aplicativo padrão de e-mail. O envio é manual no Outlook. */
 (() => {
   'use strict';
-  const $=id=>document.getElementById(id),CONFIG='baire_outlook_config',DRAFT='baire_email_rascunho';
-  const scopes=['Mail.Send'];let app=null,appPromise=null,sending=false;
-  const redirect=()=>new URL('outlook-retorno.html',location.href).href;
-  const config=()=>JSON.parse(localStorage.getItem(CONFIG)||'{}');
-  async function getApp(){
-    if(appPromise)return appPromise;
-    const clientId=config().clientId;
-    if(!clientId)throw new Error('Configure o ID do aplicativo Microsoft para habilitar o envio direto. Você também pode abrir um rascunho no Outlook Web.');
-    if(!window.msal)throw new Error('Biblioteca Microsoft não carregada. Verifique se a pasta vendor foi publicada.');
-    appPromise=(async()=>{app=new msal.PublicClientApplication({auth:{clientId,authority:'https://login.microsoftonline.com/common',redirectUri:redirect()},cache:{cacheLocation:'sessionStorage'}});await app.initialize();return app;})();
-    try{return await appPromise;}catch(e){appPromise=null;app=null;throw e;}
-  }
-  function status(){const a=app?.getActiveAccount();$('outlookStatus').textContent=a?'Conectado: '+a.username:'Conta não conectada';}
-  async function saveOutlookConfig(){try{const clientId=$('outlookClientId').value.trim();if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(clientId))throw new Error('Informe o ID do aplicativo Microsoft no formato indicado.');if(app)await app.clearCache();localStorage.setItem(CONFIG,JSON.stringify({clientId}));app=null;appPromise=null;status();Baire.toast('Configuração salva. Clique em Conectar Outlook.');}catch(e){Baire.error(e);}}
-  async function connectOutlook(){try{const a=await getApp();const result=await a.loginPopup({scopes,prompt:'select_account'});a.setActiveAccount(result.account);status();Baire.toast('Outlook conectado. Revise destinatário e mensagem antes de enviar.');}catch(e){Baire.error(e);}}
-  async function disconnectOutlook(){try{if(app)await app.clearCache();app=null;appPromise=null;status();Baire.toast('Conta desconectada deste sistema.');}catch(e){Baire.error(e);}}
+  const $=id=>document.getElementById(id),DRAFT='baire_email_rascunho';
   function records(){const db=Baire.read();return $('emailTipo').value==='pedido'?db.pedidos:db.orcamentos;}
   function renderRecords(selected){const list=records();$('emailRegistro').innerHTML='<option value="">Selecione um registro</option>'+list.map((r,i)=>`<option value="${i}">${escapeHTML(r.numero+' · '+r.clienteNome)}</option>`).join('');if(selected!==undefined)$('emailRegistro').value=String(selected);}
   function currentRecord(){const v=$('emailRegistro').value;return v===''?null:records()[Number(v)];}
@@ -6296,37 +6279,32 @@ window.Baire = (() => {
     $('emailResultado').textContent='';saveDraft();
   }
   function saveDraft(){try{localStorage.setItem(DRAFT,JSON.stringify({tipo:$('emailTipo').value,registroId:currentRecord()?.id,para:$('emailPara').value,assunto:$('emailAssunto').value,corpo:$('emailCorpo').value}));}catch{Baire.toast('Não foi possível salvar o rascunho do e-mail.');}}
-  function renderHistory(){const h=Baire.read().emails;$('emailHistorico').innerHTML=h.slice().reverse().map(e=>`<div class="email-log"><strong>${escapeHTML(e.assunto)}</strong><br>${escapeHTML(e.para)} · ${new Date(e.data).toLocaleString('pt-BR')}<br><span class="badge badge-${e.status==='Aceito pelo Outlook'?'green':e.status==='Falhou'?'red':'yellow'}">${escapeHTML(e.status)}</span></div>`).join('')||'<p class="muted">Nenhum envio realizado.</p>';}
-  function renderEmail(){status();renderHistory();const d=JSON.parse(localStorage.getItem(DRAFT)||'null');if(d){$('emailTipo').value=d.tipo;renderRecords();const i=records().findIndex(r=>r.id===d.registroId);$('emailRegistro').value=i<0?'':String(i);$('emailPara').value=d.para;$('emailAssunto').value=d.assunto;$('emailCorpo').value=d.corpo;}else renderRecords();}
+  function renderHistory(){const h=Baire.read().emails;$('emailHistorico').innerHTML=h.slice().reverse().map(e=>`<div class="email-log"><strong>${escapeHTML(e.assunto)}</strong><br>${escapeHTML(e.para)} · ${new Date(e.data).toLocaleString('pt-BR')}<br><span class="badge badge-${e.status==='Aceito pelo Outlook'?'green':e.status==='Falhou'?'red':'yellow'}">${escapeHTML(e.status)}</span></div>`).join('')||'<p class="muted">Nenhum histórico anterior. Os envios manuais devem ser conferidos na pasta Itens Enviados do Outlook.</p>';}
+  function renderEmail(){renderHistory();const d=JSON.parse(localStorage.getItem(DRAFT)||'null');if(d){$('emailTipo').value=d.tipo;renderRecords();const i=records().findIndex(r=>r.id===d.registroId);$('emailRegistro').value=i<0?'':String(i);$('emailPara').value=d.para;$('emailAssunto').value=d.assunto;$('emailCorpo').value=d.corpo;}else renderRecords();}
   function emailQuote(i){$('emailTipo').value='orcamento';renderRecords(i);fillEmail();showScreen('emails');}
   function emailOrder(i){$('emailTipo').value='pedido';renderRecords(i);fillEmail();showScreen('emails');}
-  function openOutlookDraft(){if(!$('emailForm').reportValidity())return;const q=new URLSearchParams({to:$('emailPara').value,subject:$('emailAssunto').value,body:$('emailCorpo').value});window.open('https://outlook.office.com/mail/deeplink/compose?'+q,'_blank','noopener,noreferrer');$('emailResultado').textContent='Rascunho aberto no Outlook Web. A mensagem ainda não foi enviada.';}
-  async function sendEmail(e){
-    e.preventDefault();if(sending||!$('emailForm').reportValidity())return;
-    sending=true;$('emailEnviar').disabled=true;let attempt=null,accepted=false,requestStarted=false;
-    try{
-      const a=await getApp(),account=a.getActiveAccount();if(!account)throw new Error('Clique em Conectar Outlook e escolha a conta de envio.');
-      let token;try{token=await a.acquireTokenSilent({scopes,account});}catch(err){if(err instanceof msal.InteractionRequiredAuthError)token=await a.acquireTokenPopup({scopes,account});else throw err;}
-      const data={para:$('emailPara').value.trim(),assunto:$('emailAssunto').value.trim(),corpo:$('emailCorpo').value,registroId:currentRecord()?.id||null};
-      // Registra a tentativa antes do POST. Nunca repete automaticamente uma requisição incerta.
-      attempt={id:crypto.randomUUID(),data:new Date().toISOString(),para:data.para,assunto:data.assunto,registroId:data.registroId,status:'Solicitação em andamento'};
-      await Baire.transaction(db=>db.emails.push(attempt));requestStarted=true;
-      const res=await fetch('https://graph.microsoft.com/v1.0/me/sendMail',{method:'POST',headers:{Authorization:'Bearer '+token.accessToken,'Content-Type':'application/json'},body:JSON.stringify({message:{subject:data.assunto,body:{contentType:'Text',content:data.corpo},toRecipients:[{emailAddress:{address:data.para}}]},saveToSentItems:true})});
-      if(res.status!==202){let detail='';try{detail=(await res.json()).error?.message||'';}catch{}const err=new Error('Outlook recusou o envio ('+res.status+'). '+detail);err.rejected=true;throw err;}
-      accepted=true;
-      await Baire.transaction(db=>{const log=db.emails.find(x=>x.id===attempt.id);log.status='Aceito pelo Outlook';const o=db.orcamentos.find(o=>o.id===data.registroId);if(o?.status==='Aberto'){o.status='Enviado';o.revisao=(o.revisao||0)+1;}});
-      $('emailResultado').textContent='Outlook aceitou a solicitação de envio. A entrega ao destinatário ainda depende do serviço de e-mail.';Baire.renderQuotes();
-    }catch(err){
-      if(attempt){try{await Baire.transaction(db=>{const log=db.emails.find(x=>x.id===attempt.id);if(log)log.status=accepted?'Aceito pelo Outlook':err.rejected?'Falhou':'Resultado incerto — conferir Itens Enviados';});}catch{}}
-      $('emailResultado').textContent=accepted?'Outlook aceitou o envio, mas houve falha no histórico local. Confira Itens Enviados antes de repetir.':requestStarted&&!err.rejected?'Não foi possível confirmar o resultado. Confira Itens Enviados no Outlook antes de tentar novamente.':err.message;
-      Baire.error(err);
-    }finally{sending=false;$('emailEnviar').disabled=false;renderHistory();}
+  function openOutlookDraft(){
+    if(!$('emailForm').reportValidity())return;
+    const para=$('emailPara').value.trim(),assunto=$('emailAssunto').value;
+    if(/[\r\n]/.test(para+assunto)){ $('emailResultado').textContent='Revise o destinatário e o assunto: não são permitidas quebras de linha.';return; }
+    saveDraft();
+    const base='mailto:'+encodeURIComponent(para)+'?subject='+encodeURIComponent(assunto);
+    const full=base+'&body='+encodeURIComponent($('emailCorpo').value.replace(/\r?\n/g,'\r\n'));
+    if(base.length>1800){$('emailResultado').textContent='O assunto está muito longo. Reduza o assunto e tente novamente. A mensagem continua salva.';return;}
+    const long=full.length>1800;
+    const link=document.createElement('a');link.href=long?base:full;document.body.appendChild(link);link.click();link.remove();
+    $('emailResultado').textContent=long
+      ? 'Solicitada a abertura do aplicativo de e-mail com destinatário e assunto. A mensagem é longa: clique em Copiar mensagem e cole no corpo do Outlook. Confira o remetente giselle@baireimpressora.com.br e clique em Enviar no Outlook. O sistema não confirma o envio.'
+      : 'Solicitada a abertura do aplicativo padrão de e-mail. No Outlook, confira o remetente giselle@baireimpressora.com.br, revise a mensagem e clique em Enviar. O sistema não confirma o envio. Se não abriu, defina o Outlook como aplicativo padrão de e-mail no Windows.';
   }
-  Object.assign(Baire,{saveOutlookConfig,connectOutlook,disconnectOutlook,renderEmail,fillEmail,emailQuote,emailOrder,openOutlookDraft});
+  async function copyEmailBody(){
+    saveDraft();
+    try{await navigator.clipboard.writeText($('emailCorpo').value);$('emailResultado').textContent='Mensagem copiada. Cole no corpo do e-mail no Outlook com Ctrl+V, revise e envie pelo Outlook.';}
+    catch{ $('emailCorpo').focus();$('emailCorpo').select();$('emailResultado').textContent='Mensagem selecionada. Pressione Ctrl+C para copiar e Ctrl+V no corpo do e-mail no Outlook.'; }
+  }
+  Object.assign(Baire,{renderEmail,fillEmail,emailQuote,emailOrder,openOutlookDraft,copyEmailBody});
   document.addEventListener('baire-ready',()=>{
-    $('outlookClientId').value=config().clientId||'';$('outlookRedirect').textContent=redirect();
-    $('emailTipo').addEventListener('change',()=>{renderRecords();fillEmail();});$('emailRegistro').addEventListener('change',fillEmail);$('emailForm').addEventListener('input',saveDraft);$('emailForm').addEventListener('submit',sendEmail);renderEmail();
-    if(config().clientId)getApp().then(a=>{const accounts=a.getAllAccounts();if(accounts.length===1)a.setActiveAccount(accounts[0]);status();}).catch(Baire.error);
+    $('emailTipo').addEventListener('change',()=>{renderRecords();fillEmail();});$('emailRegistro').addEventListener('change',fillEmail);$('emailForm').addEventListener('input',saveDraft);$('emailForm').addEventListener('submit',e=>{e.preventDefault();openOutlookDraft();});renderEmail();
   });
 })();
 
