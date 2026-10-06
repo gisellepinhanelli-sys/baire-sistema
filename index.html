@@ -279,6 +279,7 @@ tr:hover td{background:#f8fafc}
 @media print{.sidebar,.mobile-top,.menu-shade,#baireToast,.local-notice{display:none!important}.main{margin:0;padding:0}.quote-summary{position:static}}
 
 #manEditor[hidden]{display:none!important}#screen-manutencao-orcamentos .form-group{min-width:0}#screen-manutencao-orcamentos input,#screen-manutencao-orcamentos textarea,#screen-manutencao-orcamentos select{max-width:100%;box-sizing:border-box}#manErro{color:#b91c1c}
+#cotNovaDialog{width:min(620px,calc(100vw - 24px));max-height:90dvh;overflow:auto;border:0;border-radius:16px;padding:24px;box-sizing:border-box}#cotNovaDialog::backdrop{background:#0f172a88}#cotNovaDialog .form-group{min-width:0}#cotNovaDialog input{width:100%;box-sizing:border-box}
 .pros-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px}.pros-card,.pros-log{border:1px solid #dce3ee;border-radius:12px;padding:18px;background:#fff;overflow-wrap:anywhere}.pros-card h3{margin-top:0}.pros-card p{line-height:1.65}.pros-log{margin:12px 0}.pros-log p{white-space:pre-wrap}.pros-tools{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.pros-tools input{flex:1;min-width:160px}#prosEditor[hidden],#prosContato[hidden],#prosAlertas[hidden],#pros-custom[hidden]{display:none!important}#prosAlertas{border:2px solid #eab308;background:#fffbeb;border-radius:12px;padding:16px;margin:16px 0;max-height:45vh;overflow:auto}#prosAlertas h3{margin:0 0 12px}.pros-alert-item{border-top:1px solid #e5d7a8;padding:12px 0;overflow-wrap:anywhere}#screen-prospeccao input,#screen-prospeccao select,#screen-prospeccao textarea{max-width:100%;box-sizing:border-box}#screen-prospeccao .form-group{min-width:0}#screen-prospeccao h2{overflow-wrap:anywhere}
 </style>
 </head>
@@ -309,7 +310,7 @@ tr:hover td{background:#f8fafc}
 <button onclick="showScreen('dashboard')" id="menu-dashboard" class="active">🏠 INÍCIO</button>
 <button onclick="showScreen('manutencao-orcamentos')" id="menu-manutencao-orcamentos">🔧 Orçamentos de manutenção</button>
 <button onclick="showScreen('prospeccao')" id="menu-prospeccao">☎ Prospecção de clientes<span id="prosCount"></span></button>
-<button onclick="showScreen('cotacoes')" id="menu-cotacoes">📈 Cotações</button>
+<button onclick="showScreen('cotacoes')" id="menu-cotacoes">📈 Cotações de toners</button>
     <button onclick="showScreen('pedidos')" id="menu-pedidos">🚚 Pedidos de venda</button>
 
     
@@ -1486,11 +1487,12 @@ tr:hover td{background:#f8fafc}
 </section>
 
 <section id="screen-cotacoes" class="screen">
-  <div class="topbar"><div><p class="eyebrow">COMERCIAL · PRINTER UP</p><h2>Cotações de fornecedores</h2></div><button class="btn btn-primary" onclick="novoOrcamento()">+ Criar orçamento</button></div>
-  <div class="panel"><div class="toolbar"><div><h3>168 modelos • base de 02/10/2026</h3><p class="muted">Maior valor da cotação mais recente de cada modelo. A data exibida é a da cotação na planilha.</p></div><input id="cotBusca" class="search" placeholder="Buscar modelo ou fornecedor" aria-label="Buscar cotações"></div>
+  <div class="topbar"><div><p class="eyebrow">COMERCIAL · PRINTER UP</p><h2>Cotações de toners e suprimentos</h2></div><div class="form-actions"><button type="button" class="btn btn-primary" onclick="Baire.newCatalogQuote()">+ Criar cotação</button><button class="btn btn-secondary" onclick="novoOrcamento()">+ Criar orçamento</button></div></div>
+  <div class="panel"><div class="toolbar"><div><h3 id="cotContagem">Modelos cadastrados</h3><p class="muted">Maior valor da cotação mais recente de cada modelo. A data exibida é a da cotação na planilha. Base Printer Up de 02/10/2026. Use Criar cotação para incluir outros toners ou tintas com o valor e a data informados por você.</p></div><input id="cotBusca" class="search" placeholder="Buscar modelo ou fornecedor" aria-label="Buscar cotações"></div>
     <p class="muted">O último valor pago é apenas histórico. Referências de venda no varejo ficam separadas e precisam corresponder ao tipo, rendimento e chip do produto.</p>
     <div class="table-container"><table><thead><tr><th>Modelo</th><th>Maior cotação / data</th><th>Fornecedor</th><th>Último valor pago</th><th>Referência de varejo</th><th>Ações</th></tr></thead><tbody id="cotTabela"></tbody></table></div>
   </div>
+  <dialog id="cotNovaDialog" aria-labelledby="cotNovaTitulo"><form id="cotNovaForm"><h3 id="cotNovaTitulo">Criar cotação de toner ou tinta</h3><div class="form-grid"><div class="form-group full"><label for="cotNovaModelo">Modelo / descrição do toner ou tinta</label><input id="cotNovaModelo" maxlength="250" placeholder="Ex.: Toner TN-3472 ou Tinta Epson 544 preta" required></div><div class="form-group"><label for="cotNovaValor">Valor unitário de custo (R$)</label><input id="cotNovaValor" type="number" min="0.01" max="99999999" step="0.01" required></div><div class="form-group"><label for="cotNovaData">Data da cotação</label><input id="cotNovaData" type="date" required></div><div class="form-group full"><label for="cotNovaFornecedor">Fornecedor</label><input id="cotNovaFornecedor" maxlength="200" required></div></div><p class="muted">O valor será usado como custo nos novos orçamentos. Para variações, inclua cor, rendimento ou chip na descrição. Os cadastros ficam salvos neste navegador e entram no backup do sistema.</p><p id="cotNovaErro" role="alert" style="color:#b91c1c"></p><div class="form-actions"><button id="cotNovaSalvar" class="btn btn-primary">Salvar cotação</button><button type="button" class="btn btn-secondary" onclick="document.getElementById('cotNovaDialog').close()">Cancelar</button></div></form></dialog>
   <dialog id="mercadoDialog"><form id="mercadoForm"><h3>Referência de varejo</h3><p id="mercadoModelo"></p><input type="hidden" id="mercadoChave"><div class="form-grid">
     <div class="form-group"><label for="mercadoValor">Valor unitário anunciado (R$)</label><input id="mercadoValor" type="number" min="0.01" step="0.01" required></div>
     <div class="form-group"><label for="mercadoData">Data da consulta</label><input id="mercadoData" type="date" required></div>
@@ -6049,7 +6051,35 @@ window.Baire = (() => {
     const fresh={...c,id:uid(),tipo:documentKey(c.documento).length===14?'Pessoa Jurídica':'Pessoa Física',whatsapp:c.telefone,observacoes:''};
     db.clientes.push(fresh);return fresh;
   }
-  const catalogs=window.BAIRE_COTACOES||[];
+  const seedCatalogs=window.BAIRE_COTACOES||[],catalogs=[];
+  function syncCatalog(){
+    catalogs.splice(0,catalogs.length,...seedCatalogs,...(read().cotacoesManuais||[]));
+    $('listaModelos').innerHTML=catalogs.map(c=>`<option value="${esc(c.modelo)}">${money(c.valor)}</option>`).join('');
+    $('cotContagem').textContent=`${catalogs.length} modelos · ${seedCatalogs.length} da planilha + ${catalogs.length-seedCatalogs.length} cadastrados`;
+  }
+  function newCatalogQuote(){
+    $('cotNovaForm').reset();$('cotNovaData').value=today();$('cotNovaData').max=today();$('cotNovaErro').textContent='';$('cotNovaDialog').showModal();$('cotNovaModelo').focus();
+  }
+  function addCatalogQuote(db,c){
+    const modelo=String(c.modelo||'').trim(),fornecedor=String(c.fornecedor||'').trim(),valor=Number(c.valor),data=String(c.data||'');
+    if(!modelo||!fornecedor)throw new Error('Informe modelo e fornecedor.');
+    if(!Number.isFinite(valor)||valor<=0||valor>99999999)throw new Error('Informe um valor maior que zero e até R$ 99.999.999,00.');
+    const parsed=new Date(data+'T12:00:00Z');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(data)||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==data||data>today())throw new Error('Informe uma data válida, que não seja futura.');
+    db.cotacoesManuais??=[];
+    if([...seedCatalogs,...db.cotacoesManuais].some(x=>normalize(x.modelo)===normalize(modelo)))throw new Error('Este modelo já está cadastrado. Procure-o na lista de cotações.');
+    const item={modelo,valor:round(valor),fornecedor,data,ultimoPago:null,dataCompra:null,origem:'manual'};
+    if(item.valor<=0)throw new Error('O valor mínimo é R$ 0,01.');
+    db.cotacoesManuais.push(item);return item;
+  }
+  let savingCatalog=false;
+  async function saveCatalogQuote(e){
+    e.preventDefault();if(savingCatalog||!$('cotNovaForm').reportValidity())return;
+    savingCatalog=true;$('cotNovaSalvar').disabled=true;$('cotNovaErro').textContent='';
+    try{const c={modelo:$('cotNovaModelo').value,valor:$('cotNovaValor').value,fornecedor:$('cotNovaFornecedor').value,data:$('cotNovaData').value};await transaction(db=>addCatalogQuote(db,c));$('cotNovaDialog').close();$('cotBusca').value=c.modelo.trim();renderCatalog();toast('Cotação cadastrada. O modelo já está disponível nos orçamentos.');}
+    catch(e){$('cotNovaErro').textContent=e.message;}
+    finally{savingCatalog=false;$('cotNovaSalvar').disabled=false;}
+  }
   const catalogModel = name => catalogs.find(c=>normalize(c.modelo)===normalize(name));
   function marketFor(model,db=read()){
     const ref=db.mercado[normalize(model)];if(!ref)return null;
@@ -6206,6 +6236,7 @@ window.Baire = (() => {
   function printQuote(i){const o=read().orcamentos[i];if(o)abrirImpressao(documentHTML(o,'ORÇAMENTO'));}
   function printOrder(i){const o=read().pedidos[i];if(o)abrirImpressao(documentHTML(o,'PEDIDO DE VENDA / ENTREGA'));}
   function renderCatalog(){
+    syncCatalog();
     const db=read(),query=normalize($('cotBusca').value);
     $('cotTabela').innerHTML=catalogs.filter(c=>normalize(c.modelo+' '+c.fornecedor).includes(query)).map(c=>{const i=catalogs.indexOf(c),r=marketFor(c.modelo,db);return `<tr><td><strong>${esc(c.modelo)}</strong></td><td><strong>${money(c.valor)}</strong><small class="reference-date">Cotação: ${formatDate(c.data)}</small></td><td>${esc(c.fornecedor)}</td><td>${c.ultimoPago===null?'Não informado':money(c.ultimoPago)}<small class="reference-date">${c.dataCompra?formatDate(c.dataCompra):''}</small></td><td>${r?`${money(r.valor)}<small class="reference-date">${formatDate(r.data)} · ${r.usable?'Validada':'Conferir equivalência / data'}</small><small>${esc(r.condicao)}</small>`:'Sem referência de varejo'}</td><td><div class="actions-cell"><button class="btn btn-primary btn-small" onclick="Baire.quoteModel(${i})">Cotar</button><button class="btn btn-secondary btn-small" onclick="Baire.editMarket(${i})">Referência de mercado</button></div></td></tr>`;}).join('')||'<tr><td colspan="6" class="empty">Nenhum modelo encontrado.</td></tr>';
   }
@@ -6247,6 +6278,7 @@ window.Baire = (() => {
     try{if(!localStorage.getItem(KEY)){const db=initial();db.mercado=copy(window.BAIRE_MERCADO||{});commit(db);}else {const db=read();clientes=db.clientes;orcamentos=db.orcamentos;}}
     catch(e){error(new Error('Não foi possível abrir os dados comerciais. Não salve alterações antes de verificar o backup.'));return;}
     $('listaModelos').innerHTML=catalogs.map(c=>`<option value="${esc(c.modelo)}">${money(c.valor)}</option>`).join('');fillClients();renderCatalog();renderQuotes();renderOrders();restoreDraft();
+    $('cotNovaForm').addEventListener('submit',saveCatalogQuote);
     $('cotBusca').addEventListener('input',renderCatalog);$('orcBusca').addEventListener('input',renderQuotes);$('pedidoBusca').addEventListener('input',renderOrders);$('mercadoForm').addEventListener('submit',saveMarket);
     $('qCliente').addEventListener('input',matchClient);$('qDocumento').addEventListener('input',matchClient);
     $('orcamentoForm').addEventListener('input',e=>{if(!e.target.closest('#quoteItens')){recalc();scheduleDraft();}});
@@ -6269,7 +6301,7 @@ window.Baire = (() => {
   // O nome antigo fica apenas para compatibilidade com as telas legadas.
   const originalDataBR=dataBR;dataBR=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'')?formatDate(s):originalDataBR(s);
   document.addEventListener('DOMContentLoaded',init);
-  return {read,commit,transaction,next,calculate,findClient,mergeClient,normalize,documentKey,today,formatDate,toast,error,round,quoteItems,documentHTML,renderQuotes,renderOrders,renderCatalog,addItem,useSuggestions,quoteModel,editMarket,editQuote,cancelQuote,orderFromQuote,orderStatus,printQuote,printOrder,backup};
+  return {read,commit,transaction,next,newCatalogQuote,addCatalogQuote,calculate,findClient,mergeClient,normalize,documentKey,today,formatDate,toast,error,round,quoteItems,documentHTML,renderQuotes,renderOrders,renderCatalog,addItem,useSuggestions,quoteModel,editMarket,editQuote,cancelQuote,orderFromQuote,orderStatus,printQuote,printOrder,backup};
 })();
 
 </script>
