@@ -1,11 +1,5 @@
-const CACHE='baire-commercial-20261008-financeiro-v16';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('baire-commercial-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{
-  const url=new URL(event.request.url);
-  // Apenas o aplicativo público. Nenhuma chamada de autenticação, API ou e-mail é armazenada.
-  if(event.request.method!=='GET'||url.origin!==self.location.origin||url.search||url.pathname.includes('/vendor/')||url.pathname.endsWith('outlook-retorno.html'))return;
-  if(event.request.mode==='navigate')event.respondWith(fetch(event.request).then(response=>{if(response.ok){const clone=response.clone();caches.open(CACHE).then(cache=>cache.put('./index.html',clone));}return response;}).catch(()=>caches.match('./index.html')));
-  else if(ASSETS.some(p=>new URL(p,self.registration.scope).pathname===url.pathname))event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
-});
+// BAIRE: páginas atualizadas pela rede; última versão disponível quando offline.
+const CACHE='baire-manutencao-20261010-v1';
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add(new Request('./index.html',{cache:'reload'}))).then(()=>self.skipWaiting()));});
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==self.location.origin||e.request.mode!=='navigate')return;e.respondWith(fetch(e.request).then(async r=>{if(r.ok){const c=await caches.open(CACHE);await c.put('./index.html',r.clone());}return r;}).catch(()=>caches.match(new URL('./index.html',self.registration.scope).href,{cacheName:CACHE})));});
