@@ -324,7 +324,7 @@ tr:hover td{background:#f8fafc}
     <button onclick="showScreen('clientes')" id="menu-clientes">👥 Clientes</button>
     
     
-    <button onclick="showScreen('impressoras')" id="menu-impressoras">🖨️ Impressoras</button>
+    <button onclick="showScreen('impressoras')" id="menu-impressoras">🖨️ Locação Impressoras</button>
     <button onclick="showScreen('catalogo-impressoras')" id="menu-catalogo-impressoras">📚 Catálogo de Impressoras</button>
     
     <button onclick="showScreen('assistencia')" id="menu-assistencia">🔧 Assistência Técnica</button>
@@ -736,9 +736,9 @@ tr:hover td{background:#f8fafc}
     <div class="topbar">
 
         <div>
-            <h2>🖨️ Controle de Impressoras</h2>
+            <h2>Locação Impressoras</h2>
             <p style="margin-top:6px;color:#64748b;">
-                Controle do parque de equipamentos, contadores, toner e histórico.
+                Equipamentos para locação: valores, franquia mensal, disponibilidade e cliente.
             </p>
         </div>
 
@@ -827,7 +827,7 @@ tr:hover td{background:#f8fafc}
                 id="impressoraIndex">
 
 
-            <div class="form-grid">
+            <div class="form-grid"><div class="form-group"><label for="impressoraMensalidade">Valor mensal (R$)</label><input id="impressoraMensalidade" type="number" min="0" step="0.01"></div><div class="form-group"><label for="impressoraModeloToner">Modelo do toner / tinta</label><input id="impressoraModeloToner" type="text" maxlength="250"></div><div class="form-group"><label for="impressoraFranquia">Impressões incluídas por mês</label><input id="impressoraFranquia" type="number" min="0" step="1"></div><div class="form-group"><label for="impressoraExcedente">Valor por impressão extra (R$)</label><input id="impressoraExcedente" type="number" min="0" step="0.0001"></div><div class="form-group"><label for="impressoraCor">Impressão</label><select id="impressoraCor"><option value="">Não informado</option><option>Mono</option><option>Colorida</option></select></div><div class="form-group"><label for="impressoraDisponibilidade">Disponibilidade para locação</label><select id="impressoraDisponibilidade"><option>Disponível</option><option>Alugada</option><option>Indisponível</option><option>A conferir</option></select></div>
 
 
                 <div class="form-group">
@@ -1135,49 +1135,7 @@ tr:hover td{background:#f8fafc}
 
             <table>
 
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Patrimônio
-                        </th>
-
-                        <th>
-                            Cliente
-                        </th>
-
-                        <th>
-                            Equipamento
-                        </th>
-
-                        <th>
-                            Série
-                        </th>
-
-                        <th>
-                            Contador
-                        </th>
-
-                        <th>
-                            Páginas
-                        </th>
-
-                        <th>
-                            Toner
-                        </th>
-
-                        <th>
-                            Status
-                        </th>
-
-                        <th>
-                            Ações
-                        </th>
-
-                    </tr>
-
-                </thead>
+                <thead><tr><th>Equipamento / série</th><th>Toner / tinta</th><th>Tecnologia / cor</th><th>Mensalidade</th><th>Franquia mensal</th><th>Valor por extra</th><th>Disponibilidade / cliente</th><th>Ações</th></tr></thead>
 
 
                 <tbody
@@ -3558,16 +3516,24 @@ function salvarImpressora(event){
       ? null
       : clientes[Number(clienteIndex)];
 
+  const disponibilidade=document.getElementById('impressoraDisponibilidade').value;
+  if(disponibilidade==='Alugada'&&!cliente){alert('Selecione o cliente que está com a impressora alugada.');return;}
+  const mensalidade=Number(document.getElementById('impressoraMensalidade').value),franquia=Number(document.getElementById('impressoraFranquia').value),excedente=Number(document.getElementById('impressoraExcedente').value);
+  if([mensalidade,franquia,excedente].some(v=>!Number.isFinite(v)||v<0)||!Number.isInteger(franquia)){alert('Confira os valores e a quantidade inteira de impressões mensais.');return;}
   const impressora = {
+    ...(index!==''?impressoras[Number(index)]:{}),
+    mensalidade,franquia,excedente,disponibilidade,
+    modeloToner:document.getElementById('impressoraModeloToner').value.trim(),
+    cor:document.getElementById('impressoraCor').value,
     id:
       index === ""
         ? Date.now()
         : impressoras[Number(index)].id,
 
-    clienteId: cliente ? cliente.id : null,
+    clienteId: disponibilidade==='Alugada'&&cliente ? cliente.id : null,
 
     clienteNome:
-      cliente
+      disponibilidade==='Alugada'&&cliente
         ? cliente.nome
         : "Sem cliente",
 
@@ -3645,6 +3611,8 @@ function editarImpressora(index){
   if(!p) return;
 
   document.getElementById("impressoraIndex").value = index;
+  for(const [field,key] of [['Mensalidade','mensalidade'],['ModeloToner','modeloToner'],['Franquia','franquia'],['Excedente','excedente'],['Cor','cor']])document.getElementById('impressora'+field).value=p[key]??'';
+  document.getElementById('impressoraDisponibilidade').value=p.disponibilidade||'A conferir';
 
   const clienteIndex =
     clientes.findIndex(c => c.id === p.clienteId);
@@ -4059,110 +4027,11 @@ function renderImpressoras(){
 
   if(lista.length === 0){
     tbody.innerHTML =
-      '<tr><td colspan="9" class="empty">Nenhuma impressora encontrada.</td></tr>';
+      '<tr><td colspan="8" class="empty">Nenhuma impressora encontrada.</td></tr>';
     return;
   }
 
-  tbody.innerHTML =
-    lista.map(function(p){
-
-      const index =
-        impressoras.indexOf(p);
-
-      const paginasEquipamento =
-        Math.max(
-          0,
-          numero(p.contadorAtual) -
-          numero(p.contadorInicial)
-        );
-
-      let tonerClass = "badge-green";
-
-      if(numero(p.toner) <= 20){
-        tonerClass = "badge-red";
-      }else if(numero(p.toner) <= 40){
-        tonerClass = "badge-yellow";
-      }
-
-      let statusClass = "badge-green";
-
-      if(p.status === "Em manutenção"){
-        statusClass = "badge-yellow";
-      }else if(
-        p.status === "Parada" ||
-        p.status === "Baixada"
-      ){
-        statusClass = "badge-red";
-      }
-
-      return `
-        <tr>
-
-          <td>
-            <strong>
-              ${escapeHTML(p.patrimonio || "-")}
-            </strong>
-          </td>
-
-          <td>
-            ${escapeHTML(p.clienteNome || "Sem cliente")}
-          </td>
-
-          <td>
-            ${escapeHTML(p.marca || "")}
-            ${escapeHTML(p.modelo || "")}
-          </td>
-
-          <td>
-            ${escapeHTML(p.serie || "-")}
-          </td>
-
-          <td>
-            ${numero(p.contadorAtual).toLocaleString("pt-BR")}
-          </td>
-
-          <td>
-            ${paginasEquipamento.toLocaleString("pt-BR")}
-          </td>
-
-          <td>
-            <span class="badge ${tonerClass}">
-              ${numero(p.toner)}%
-            </span>
-          </td>
-
-          <td>
-            <span class="badge ${statusClass}">
-              ${escapeHTML(p.status)}
-            </span>
-          </td>
-
-          <td>
-
-            <button
-              class="btn btn-small btn-primary"
-              onclick="editarImpressora(${index})">
-              Editar
-            </button>
-
-            <button
-              class="btn btn-small btn-secondary"
-              onclick="abrirHistoricoImpressora(${index})">
-              Histórico
-            </button>
-
-            <button
-              class="btn btn-small btn-danger"
-              onclick="excluirImpressora(${index})">
-              Excluir
-            </button>
-
-          </td>
-
-        </tr>
-      `;
-
-    }).join("");
+  tbody.innerHTML=lista.map(p=>{const i=impressoras.indexOf(p);return `<tr><td><strong>${escapeHTML([p.marca,p.modelo].filter(Boolean).join(' '))}</strong><br><small>${escapeHTML(p.patrimonio||'')} · Série: ${escapeHTML(p.serie||'—')}</small></td><td>${escapeHTML(p.modeloToner||'Não informado')}</td><td>${escapeHTML(p.tipo||'Não informado')} / ${escapeHTML(p.cor||'Não informado')}</td><td>${p.mensalidade==null?'A cadastrar':dinheiro(p.mensalidade)}</td><td>${p.franquia==null?'A cadastrar':Number(p.franquia).toLocaleString('pt-BR')+' páginas'}</td><td>${p.excedente==null?'A cadastrar':Number(p.excedente).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:4})}</td><td><span class="badge ${p.disponibilidade==='Disponível'?'badge-green':'badge-blue'}">${escapeHTML(p.disponibilidade||'A conferir')}</span><br>${escapeHTML(p.clienteId?p.clienteNome:'Sem cliente vinculado')}</td><td><button class="btn btn-small btn-primary" onclick="editarImpressora(${i})">Editar</button> <button class="btn btn-small btn-secondary" onclick="abrirHistoricoImpressora(${i})">Histórico</button> <button class="btn btn-small btn-danger" onclick="excluirImpressora(${i})">Excluir</button></td></tr>`;}).join('');
 }
 
 let impressoraHistoricoAtual = null;
